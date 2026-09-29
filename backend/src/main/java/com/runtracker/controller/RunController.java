@@ -4,6 +4,7 @@ import com.runtracker.dto.CreateRunRequest;
 import com.runtracker.dto.RunResponse;
 import com.runtracker.dto.RunSummaryResponse;
 import com.runtracker.service.RunService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +26,7 @@ public class RunController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public RunResponse createRun(@RequestBody CreateRunRequest request) {
+    public RunResponse createRun(@Valid @RequestBody CreateRunRequest request) {
         return runService.createRun(request);
     }
 
