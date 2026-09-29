@@ -1,0 +1,15 @@
+async function handleResponse(response) {
+  if (!response.ok) {
+    const body = await response.json().catch(() => null)
+    throw new Error(body?.message ?? 'Something went wrong. Please try again.')
+  }
+  return response.json()
+}
+
+export async function getRuns() {
+  return handleResponse(await fetch('/api/runs'))
+}
+
+export async function getSummary() {
+  return handleResponse(await fetch('/api/runs/summary'))
+}
