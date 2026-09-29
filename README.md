@@ -12,5 +12,6 @@ Track your runs, see the start and end points on Google Maps, and follow your to
 
 ```
 backend/             Spring Boot REST API
+frontend/            React app (Vite)
 docker-compose.yml   PostgreSQL database
 ```
