@@ -2,6 +2,7 @@ package com.runtracker.controller;
 
 import com.runtracker.dto.CreateRunRequest;
 import com.runtracker.dto.RunResponse;
+import com.runtracker.dto.RunSummaryResponse;
 import com.runtracker.service.RunService;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -31,5 +32,10 @@ public class RunController {
     @GetMapping
     public List<RunResponse> getRuns() {
         return runService.getRuns();
+    }
+
+    @GetMapping("/summary")
+    public RunSummaryResponse getSummary() {
+        return runService.getSummary();
     }
 }

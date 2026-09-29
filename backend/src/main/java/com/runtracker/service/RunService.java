@@ -2,6 +2,7 @@ package com.runtracker.service;
 
 import com.runtracker.dto.CreateRunRequest;
 import com.runtracker.dto.RunResponse;
+import com.runtracker.dto.RunSummaryResponse;
 import com.runtracker.entity.Run;
 import com.runtracker.repository.RunRepository;
 import java.time.LocalDate;
@@ -37,5 +38,11 @@ public class RunService {
         return runRepository.findAllByOrderByRunDateDescCreatedAtDesc().stream()
                 .map(RunResponse::from)
                 .toList();
+    }
+
+    public RunSummaryResponse getSummary() {
+        // Adding doubles can leave tiny errors (6.630000000000001), so round the total again.
+        double totalDistanceKm = Math.round(runRepository.sumDistanceKm() * 100) / 100.0;
+        return new RunSummaryResponse(runRepository.count(), totalDistanceKm);
     }
 }
