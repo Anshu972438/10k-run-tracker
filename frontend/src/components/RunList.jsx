@@ -8,7 +8,7 @@ function formatDate(runDate) {
   })
 }
 
-function RunList({ runs }) {
+function RunList({ runs, selectedRunId, onSelectRun }) {
   return (
     <section className="run-list">
       <h2>Run history</h2>
@@ -17,14 +17,16 @@ function RunList({ runs }) {
       ) : (
         <ul>
           {runs.map((run) => (
-            <li key={run.id}>
-              <div>
-                <p className="run-route">
-                  {run.startLocation} → {run.endLocation}
-                </p>
-                <p className="run-date">{formatDate(run.runDate)}</p>
-              </div>
-              <p className="run-distance">{run.distanceKm.toFixed(2)} km</p>
+            <li key={run.id} className={run.id === selectedRunId ? 'selected' : ''}>
+              <button type="button" className="run-select" onClick={() => onSelectRun(run.id)}>
+                <span>
+                  <span className="run-route">
+                    {run.startLocation} → {run.endLocation}
+                  </span>
+                  <span className="run-date">{formatDate(run.runDate)}</span>
+                </span>
+                <span className="run-distance">{run.distanceKm.toFixed(2)} km</span>
+              </button>
             </li>
           ))}
         </ul>
