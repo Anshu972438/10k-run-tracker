@@ -1,5 +1,8 @@
+import RunCalendar from './RunCalendar'
 import StatCard from './StatCard'
-import { averagePace, formatDuration, formatPace, totalDuration } from '../utils/format'
+import WeeklyChart from './WeeklyChart'
+import { averagePace, formatDate, formatDuration, formatPace, totalDuration } from '../utils/format'
+import { personalRecords } from '../utils/stats'
 
 function formatMonth(month) {
   return new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
@@ -20,14 +23,7 @@ function StatsPage({ runs, summary, isLoading = false }) {
   const averageKm = summary.totalRuns > 0 ? summary.totalDistanceKm / summary.totalRuns : 0
   const totalSeconds = totalDuration(runs)
   const pace = averagePace(runs)
-  const longestRun = runs.reduce(
-    (longest, run) => (longest === null || run.distanceKm > longest.distanceKm ? run : longest),
-    null,
-  )
-  const shortestRun = runs.reduce(
-    (shortest, run) => (shortest === null || run.distanceKm < shortest.distanceKm ? run : shortest),
-    null,
-  )
+  const records = personalRecords(runs)
 
   // runDate is "YYYY-MM-DD", so the first 7 characters are the month.
   const kmByMonth = {}
@@ -64,17 +60,46 @@ function StatsPage({ runs, summary, isLoading = false }) {
               value={pace !== null ? formatPace(pace) : '–'}
               detail="Runs with a recorded time"
             />
-            <StatCard
-              label="Longest run"
-              value={`${longestRun.distanceKm.toFixed(2)} km`}
-              detail={`${longestRun.startLocation} → ${longestRun.endLocation}`}
-            />
-            <StatCard
-              label="Shortest run"
-              value={`${shortestRun.distanceKm.toFixed(2)} km`}
-              detail={`${shortestRun.startLocation} → ${shortestRun.endLocation}`}
-            />
           </div>
+          <div className="stats-columns">
+            <WeeklyChart runs={runs} />
+            <RunCalendar runs={runs} />
+          </div>
+          <section className="month-list">
+            <h3>Personal records</h3>
+            <div className="stats-grid records-grid">
+              <StatCard
+                label="Longest run"
+                value={`${records.longestRun.distanceKm.toFixed(2)} km`}
+                detail={`${records.longestRun.startLocation} → ${records.longestRun.endLocation}`}
+              />
+              <StatCard
+                label="Fastest pace"
+                value={records.fastestRun ? formatPace(records.fastestRun.paceSecondsPerKm) : '–'}
+                detail={
+                  records.fastestRun
+                    ? `${records.fastestRun.startLocation} → ${records.fastestRun.endLocation}`
+                    : 'Add a time to your runs'
+                }
+              />
+              <StatCard
+                label="Longest time"
+                value={
+                  records.longestTimeRun ? formatDuration(records.longestTimeRun.durationSeconds) : '–'
+                }
+                detail={
+                  records.longestTimeRun
+                    ? `${records.longestTimeRun.startLocation} → ${records.longestTimeRun.endLocation}`
+                    : 'Add a time to your runs'
+                }
+              />
+              <StatCard
+                label="Best week"
+                value={`${records.bestWeek.km.toFixed(2)} km`}
+                detail={`Week of ${formatDate(records.bestWeek.weekStart, { day: 'numeric', month: 'long' })}`}
+              />
+            </div>
+          </section>
           <section className="month-list">
             <h3>Distance by month</h3>
             <ul>

@@ -1,3 +1,5 @@
+import GoalRing from './GoalRing'
+
 function DistanceSummary({ totalDistanceKm, totalRuns, isLoading = false }) {
   const averageKm = totalRuns > 0 ? totalDistanceKm / totalRuns : 0
 
@@ -14,6 +16,7 @@ function DistanceSummary({ totalDistanceKm, totalRuns, isLoading = false }) {
           </p>
         )}
       </div>
+      {!isLoading && <GoalRing totalDistanceKm={totalDistanceKm} />}
       <div className="summary-stats">
         <a className="summary-stat" href="#history">
           <span className="summary-stat-label">Runs</span>

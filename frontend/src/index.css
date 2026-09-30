@@ -1124,3 +1124,215 @@ gmp-place-autocomplete {
 .edit-run-actions button[type='submit'] {
   flex: 1;
 }
+
+/* 10K goal ring in the summary card */
+
+.goal-ring {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.goal-ring svg {
+  flex-shrink: 0;
+  transform: rotate(-90deg);
+}
+
+.goal-ring circle {
+  fill: none;
+  stroke-width: 8;
+}
+
+.goal-ring-track {
+  stroke: rgb(255 255 255 / 0.2);
+}
+
+.goal-ring-fill {
+  stroke: #fff;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.goal-ring-title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.goal-ring-detail {
+  margin: 4px 0 0;
+  font-size: 13px;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Weekly chart and calendar on the statistics page */
+
+.stats-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.stats-columns .month-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The chart fills its card, so it lines up with the calendar next to it. */
+.weekly-chart {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  min-height: 200px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weekly-chart li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.weekly-km {
+  min-height: 16px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.weekly-bar-track {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #f1f5f9;
+}
+
+.weekly-bar {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #22c55e, #0d9488);
+}
+
+.weekly-label {
+  color: var(--color-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.calendar-header h3 {
+  margin: 0;
+}
+
+.calendar-nav {
+  display: flex;
+  gap: 4px;
+}
+
+.calendar-nav button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--color-text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.calendar-nav button:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.calendar-nav button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-weekday {
+  padding-bottom: 4px;
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.calendar-day {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--color-muted);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+a.calendar-day {
+  color: #fff;
+  font-weight: 700;
+  transition: transform 0.15s;
+}
+
+a.calendar-day:hover {
+  transform: scale(1.08);
+}
+
+a.calendar-day:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.calendar-day.level-1 {
+  background: #86efac;
+  color: #14532d;
+}
+
+.calendar-day.level-2 {
+  background: #4ade80;
+  color: #14532d;
+}
+
+.calendar-day.level-3 {
+  background: #16a34a;
+}
+
+.calendar-day.level-4 {
+  background: #166534;
+}
+
+.calendar-today {
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.records-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.records-grid .stat-card {
+  box-shadow: none;
+}
