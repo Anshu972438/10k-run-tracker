@@ -14,10 +14,11 @@ Built as a time-boxed (~4 hour) take-home assignment: the focus is on simple, re
 - **Total distance** across all runs, shown prominently, together with the number of runs and the average distance per run.
 - **Run history**, newest first and grouped by day, with delete (with confirmation). Click a day to open its **daily summary** (`#day/YYYY-MM-DD`): distance, runs, time, average pace and the runs of that day.
 - **Run details page** (`#run/7`): click any run to see its distance, time, pace and average speed, how it compares with your other runs, its own map, and the start and end coordinates.
+- **Edit a run**: correct the date or time of a saved run from its details page; the pace is recalculated.
 - **Statistics page** (`#stats`) with total distance, total time, average distance and pace, longest and shortest run, and distance per month. The summary tiles link to it and to the run history.
 - **Persistent storage** in PostgreSQL, so data survives restarts of the app and the database.
 - **Validation and readable errors**: invalid input returns `400` with a clear message, a missing run returns `404`, and unexpected errors return a generic `500` without a stack trace.
-- **Tests and CI**: 26 backend tests and 36 frontend tests, run by GitHub Actions on every push.
+- **Tests and CI**: 31 backend tests and 43 frontend tests, run by GitHub Actions on every push.
 
 ## Tech stack
 
@@ -136,6 +137,7 @@ Base URL: `http://localhost:8080/api/runs`
 | `POST` | `/api/runs` | Create a run | `201` + run | `400` invalid input |
 | `GET` | `/api/runs` | List runs, newest first | `200` + list | |
 | `GET` | `/api/runs/summary` | Total runs and total distance | `200` | |
+| `PUT` | `/api/runs/{id}` | Change the date and time of a run | `200` + run | `400` invalid input, `404` not found |
 | `DELETE` | `/api/runs/{id}` | Delete a run | `204` | `404` not found, `400` invalid id |
 
 **Create a run** (`runDate` is optional and defaults to today; `durationSeconds` is optional):
@@ -168,6 +170,14 @@ curl http://localhost:8080/api/runs/summary
 
 ```json
 {"totalRuns":1,"totalDistanceKm":3.45}
+```
+
+**Edit a run** (`runDate` is required; leave out `durationSeconds` to remove the time):
+
+```bash
+curl -i -X PUT http://localhost:8080/api/runs/1 \
+  -H "Content-Type: application/json" \
+  -d '{"runDate":"2026-09-27","durationSeconds":1800}'
 ```
 
 **Delete a run**
@@ -218,8 +228,8 @@ cd backend
 ```
 
 - `DistanceCalculatorTest`: Haversine results, same point, symmetry, rounding.
-- `RunServiceTest`: business rules with Mockito and no Spring context (default date, distance, duration and pace, ordering, rounded total, empty summary, delete and not found).
-- `RunControllerIntegrationTest`: MockMvc + H2 through all layers (create, create with duration and pace, list, summary, empty summary, invalid input, zero duration, delete, not found).
+- `RunServiceTest`: business rules with Mockito and no Spring context (default date with a fixed clock, distance, duration and pace, ordering, rounded total, empty summary, update, delete and not found).
+- `RunControllerIntegrationTest`: MockMvc + H2 through all layers (create, create with duration and pace, list, summary, empty summary, invalid input, zero duration, future date, decimal time, update, update without date, delete, not found).
 
 **Frontend** (Google Places and the API are mocked):
 
@@ -232,10 +242,11 @@ npm run lint
 - `DistanceSummary`: total, run count, average, and the zero state.
 - `RunList`: empty state, rendering, time and pace, grouping by day with a link to the daily summary, selecting a run, delete only after confirmation.
 - `RunForm`: submit stays disabled until both places are selected, typed dates are sent as `YYYY-MM-DD`, the time is sent in seconds, invalid dates or times block submitting, successful save, and error display.
+- `EditRunForm`: starts with the run's values, saves changes, removes the time, needs a date, shows save errors.
 - `StatsPage`: longest and shortest run, average, and the empty state.
 - `DayPage`: totals and pace for one day only, opening a run, and a day without runs.
 - `RunPage`: time, pace and speed, comparison with the other runs, the link to the day, a run without a time, and a run that does not exist.
-- `format` helpers: duration, pace and average pace over runs with and without a time.
+- `format` and `runInput` helpers: duration, pace, average pace (skipping 0 km loop runs), typed dates and time fields.
 - `MapsErrorBoundary`: a Google Maps error shows a message instead of blanking the page.
 
 **CI**: `.github/workflows/ci.yml` runs the backend tests and the frontend lint, tests and build on every push to `main` and on pull requests.
@@ -258,12 +269,13 @@ npm run lint
 - **Only the database runs in Docker.** The backend and frontend run with their normal dev tools, which keeps the setup transparent. Containerising both would be a straightforward next step.
 - **Vite proxy instead of CORS configuration.** The browser only talks to one origin during development, so the backend needs no CORS setup.
 - **Browser-side Google Maps key.** A Maps JavaScript key is always visible in the browser; it is protected by website and API restrictions rather than by keeping it secret.
+- **Only the date and time of a run can be edited.** Changing the locations would change the distance, so a run with wrong locations is deleted and added again.
 - **No authentication**, as it is out of scope for the assignment.
 
 ## Future improvements
 
 - Route distance and route line with the Google Routes API.
-- Edit runs, and filter or paginate the history.
+- Filter or paginate the history.
 - Flyway migrations and Testcontainers-based integration tests.
 - Dockerfiles for the backend and frontend, so the whole stack starts with `docker compose up`.
 - User accounts, so each runner sees only their own runs.
@@ -278,15 +290,16 @@ backend/
     service/      RunService, DistanceCalculator
     repository/   RunRepository
     entity/       Run
-    dto/          CreateRunRequest, RunResponse, RunSummaryResponse, ErrorResponse
+    dto/          CreateRunRequest, UpdateRunRequest, RunResponse, RunSummaryResponse, ErrorResponse
     exception/    GlobalExceptionHandler, RunNotFoundException
   src/test/       unit and integration tests (H2)
 frontend/
   src/
     App.jsx       page layout and state
     components/   DistanceSummary, RunForm, LocationSearch, RunMap, RunList, StatsPage,
-                  DayPage, RunPage, StatCard, MapsErrorBoundary (+ tests)
-    utils/        format.js (dates, durations, pace)
+                  DayPage, RunPage, EditRunForm, DateField, DurationFields, StatCard,
+                  MapsErrorBoundary (+ tests)
+    utils/        format.js (dates, durations, pace), runInput.js (form parsing)
     services/     runApi.js
 docker-compose.yml   PostgreSQL 16
 .github/workflows/   CI
