@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import DistanceSummary from './components/DistanceSummary'
+import MapsErrorBoundary from './components/MapsErrorBoundary'
 import RunForm from './components/RunForm'
 import RunList from './components/RunList'
 import RunMap from './components/RunMap'
@@ -14,6 +15,8 @@ function App() {
   const [summary, setSummary] = useState({ totalRuns: 0, totalDistanceKm: 0 })
   const [selectedRunId, setSelectedRunId] = useState(null)
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [notice, setNotice] = useState('')
   // The page is chosen by the URL hash ("#stats"), so the browser back button works without a router.
   const [page, setPage] = useState(window.location.hash)
 
@@ -29,11 +32,21 @@ function App() {
         setError('')
       })
       .catch((err) => setError(err.message))
+      .finally(() => setIsLoading(false))
   }
 
   useEffect(() => {
     loadRuns()
   }, [])
+
+  // Hide the "Run added" / "Run deleted" message after a few seconds.
+  useEffect(() => {
+    if (!notice) {
+      return
+    }
+    const timer = setTimeout(() => setNotice(''), 3000)
+    return () => clearTimeout(timer)
+  }, [notice])
 
   useEffect(() => {
     function handleHashChange() {
@@ -45,12 +58,16 @@ function App() {
 
   function handleRunCreated(createdRun) {
     setSelectedRunId(createdRun.id)
+    setNotice('Run added')
     loadRuns()
   }
 
   function handleDeleteRun(id) {
     deleteRun(id)
-      .then(loadRuns)
+      .then(() => {
+        setNotice('Run deleted')
+        return loadRuns()
+      })
       .catch((err) => setError(err.message))
   }
 
@@ -86,12 +103,29 @@ function App() {
             <DistanceSummary
               totalDistanceKm={summary.totalDistanceKm}
               totalRuns={summary.totalRuns}
+              isLoading={isLoading}
             />
             <div className="layout">
               {GOOGLE_MAPS_API_KEY ? (
                 <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-                  <RunForm onRunCreated={handleRunCreated} />
-                  <RunMap run={selectedRun} />
+                  <MapsErrorBoundary
+                    fallback={
+                      <p className="run-form form-message">
+                        Location search could not load. Check the Google Maps API key.
+                      </p>
+                    }
+                  >
+                    <RunForm onRunCreated={handleRunCreated} />
+                  </MapsErrorBoundary>
+                  <MapsErrorBoundary
+                    fallback={
+                      <p className="map-message">
+                        The map could not load. Check the Google Maps API key.
+                      </p>
+                    }
+                  >
+                    <RunMap run={selectedRun} />
+                  </MapsErrorBoundary>
                 </APIProvider>
               ) : (
                 <p className="map-message">
@@ -101,6 +135,7 @@ function App() {
               )}
               <RunList
                 runs={runs}
+                isLoading={isLoading}
                 selectedRunId={selectedRun?.id}
                 onSelectRun={setSelectedRunId}
                 onDeleteRun={handleDeleteRun}
@@ -109,6 +144,11 @@ function App() {
           </>
         )}
       </main>
+      {notice && (
+        <p className="toast" role="status">
+          {notice}
+        </p>
+      )}
     </>
   )
 }

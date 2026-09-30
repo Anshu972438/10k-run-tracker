@@ -8,7 +8,7 @@ function formatDate(runDate) {
   })
 }
 
-function RunList({ runs, selectedRunId, onSelectRun, onDeleteRun }) {
+function RunList({ runs, isLoading = false, selectedRunId, onSelectRun, onDeleteRun }) {
   function handleDelete(run) {
     if (window.confirm(`Delete the run from ${run.startLocation} to ${run.endLocation}?`)) {
       onDeleteRun(run.id)
@@ -18,7 +18,15 @@ function RunList({ runs, selectedRunId, onSelectRun, onDeleteRun }) {
   return (
     <section className="run-list" id="history">
       <h2>Run history</h2>
-      {runs.length === 0 ? (
+      {isLoading ? (
+        <ul aria-label="Loading runs">
+          {[1, 2, 3].map((row) => (
+            <li key={row} className="skeleton-row">
+              <span className="skeleton" />
+            </li>
+          ))}
+        </ul>
+      ) : runs.length === 0 ? (
         <p className="empty-state">No runs yet. Add your first run to get started.</p>
       ) : (
         <ul>
