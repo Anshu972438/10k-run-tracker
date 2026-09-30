@@ -3,7 +3,7 @@ async function handleResponse(response) {
     const body = await response.json().catch(() => null)
     throw new Error(body?.message ?? 'Something went wrong. Please try again.')
   }
-  return response.json()
+  return response.status === 204 ? null : response.json()
 }
 
 export async function getRuns() {
@@ -21,4 +21,8 @@ export async function createRun(run) {
     body: JSON.stringify(run),
   })
   return handleResponse(response)
+}
+
+export async function deleteRun(id) {
+  return handleResponse(await fetch(`/api/runs/${id}`, { method: 'DELETE' }))
 }

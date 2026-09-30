@@ -8,7 +8,13 @@ function formatDate(runDate) {
   })
 }
 
-function RunList({ runs, selectedRunId, onSelectRun }) {
+function RunList({ runs, selectedRunId, onSelectRun, onDeleteRun }) {
+  function handleDelete(run) {
+    if (window.confirm(`Delete the run from ${run.startLocation} to ${run.endLocation}?`)) {
+      onDeleteRun(run.id)
+    }
+  }
+
   return (
     <section className="run-list">
       <h2>Run history</h2>
@@ -26,6 +32,14 @@ function RunList({ runs, selectedRunId, onSelectRun }) {
                   <span className="run-date">{formatDate(run.runDate)}</span>
                 </span>
                 <span className="run-distance">{run.distanceKm.toFixed(2)} km</span>
+              </button>
+              <button
+                type="button"
+                className="run-delete"
+                onClick={() => handleDelete(run)}
+                aria-label={`Delete run from ${run.startLocation} to ${run.endLocation}`}
+              >
+                Delete
               </button>
             </li>
           ))}

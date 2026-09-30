@@ -4,7 +4,7 @@ import DistanceSummary from './components/DistanceSummary'
 import RunForm from './components/RunForm'
 import RunList from './components/RunList'
 import RunMap from './components/RunMap'
-import { getRuns, getSummary } from './services/runApi'
+import { deleteRun, getRuns, getSummary } from './services/runApi'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
@@ -36,6 +36,12 @@ function App() {
     loadRuns()
   }
 
+  function handleDeleteRun(id) {
+    deleteRun(id)
+      .then(loadRuns)
+      .catch((err) => setError(err.message))
+  }
+
   return (
     <main className="app">
       <h1>10K Run Tracker</h1>
@@ -52,7 +58,12 @@ function App() {
           VITE_GOOGLE_MAPS_API_KEY to frontend/.env.local and restart the dev server.
         </p>
       )}
-      <RunList runs={runs} selectedRunId={selectedRun?.id} onSelectRun={setSelectedRunId} />
+      <RunList
+        runs={runs}
+        selectedRunId={selectedRun?.id}
+        onSelectRun={setSelectedRunId}
+        onDeleteRun={handleDeleteRun}
+      />
     </main>
   )
 }
