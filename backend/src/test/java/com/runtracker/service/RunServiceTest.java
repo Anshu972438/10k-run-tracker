@@ -37,7 +37,7 @@ class RunServiceTest {
     @Test
     void createRunCalculatesDistanceAndSavesRun() {
         CreateRunRequest request = new CreateRunRequest(
-                "Big Ben", 51.5007, -0.1246, "Tower Bridge", 51.5055, -0.0754, LocalDate.of(2026, 9, 28));
+                "Big Ben", 51.5007, -0.1246, "Tower Bridge", 51.5055, -0.0754, LocalDate.of(2026, 9, 28), 1200);
         when(distanceCalculator.distanceKm(51.5007, -0.1246, 51.5055, -0.0754)).thenReturn(3.45);
         when(runRepository.save(any(Run.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -49,12 +49,27 @@ class RunServiceTest {
         assertThat(savedRun.getValue().getDistanceKm()).isEqualTo(3.45);
         assertThat(response.distanceKm()).isEqualTo(3.45);
         assertThat(response.runDate()).isEqualTo(LocalDate.of(2026, 9, 28));
+        assertThat(response.durationSeconds()).isEqualTo(1200);
+        // 1200 s / 3.45 km = 347.8 s per km, rounded to 348 (5:48 min/km)
+        assertThat(response.paceSecondsPerKm()).isEqualTo(348);
+    }
+
+    @Test
+    void createRunWithoutDurationHasNoPace() {
+        CreateRunRequest request = new CreateRunRequest(
+                "Big Ben", 51.5007, -0.1246, "Tower Bridge", 51.5055, -0.0754, null, null);
+        when(runRepository.save(any(Run.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        RunResponse response = runService.createRun(request);
+
+        assertThat(response.durationSeconds()).isNull();
+        assertThat(response.paceSecondsPerKm()).isNull();
     }
 
     @Test
     void createRunUsesTodayWhenDateIsMissing() {
         CreateRunRequest request = new CreateRunRequest(
-                "Big Ben", 51.5007, -0.1246, "Tower Bridge", 51.5055, -0.0754, null);
+                "Big Ben", 51.5007, -0.1246, "Tower Bridge", 51.5055, -0.0754, null, null);
         when(runRepository.save(any(Run.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         RunResponse response = runService.createRun(request);
@@ -65,9 +80,9 @@ class RunServiceTest {
     @Test
     void getRunsReturnsRunsInRepositoryOrder() {
         Run newer = new Run("Amsterdam Centraal", 52.3791, 4.9003, "Vondelpark", 52.3580, 4.8686,
-                3.18, LocalDate.of(2026, 9, 30));
+                3.18, LocalDate.of(2026, 9, 30), null);
         Run older = new Run("Big Ben", 51.5007, -0.1246, "Tower Bridge", 51.5055, -0.0754,
-                3.45, LocalDate.of(2026, 9, 28));
+                3.45, LocalDate.of(2026, 9, 28), null);
         when(runRepository.findAllByOrderByRunDateDescCreatedAtDesc()).thenReturn(List.of(newer, older));
 
         List<RunResponse> runs = runService.getRuns();

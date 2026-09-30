@@ -12,7 +12,9 @@ public record RunResponse(
         double endLatitude,
         double endLongitude,
         double distanceKm,
-        LocalDate runDate
+        LocalDate runDate,
+        Integer durationSeconds,
+        Integer paceSecondsPerKm
 ) {
 
     public static RunResponse from(Run run) {
@@ -25,7 +27,17 @@ public record RunResponse(
                 run.getEndLatitude(),
                 run.getEndLongitude(),
                 run.getDistanceKm(),
-                run.getRunDate()
+                run.getRunDate(),
+                run.getDurationSeconds(),
+                paceSecondsPerKm(run)
         );
+    }
+
+    // Pace is derived from the stored duration and distance, so it is never stored itself.
+    private static Integer paceSecondsPerKm(Run run) {
+        if (run.getDurationSeconds() == null || run.getDistanceKm() == 0) {
+            return null;
+        }
+        return (int) Math.round(run.getDurationSeconds() / run.getDistanceKm());
     }
 }

@@ -125,6 +125,45 @@ class RunControllerIntegrationTest {
     }
 
     @Test
+    void createsRunWithDurationAndReturnsPace() throws Exception {
+        String request = """
+                {
+                  "startLocation": "Big Ben, London",
+                  "startLatitude": 51.5007,
+                  "startLongitude": -0.1246,
+                  "endLocation": "Tower Bridge, London",
+                  "endLatitude": 51.5055,
+                  "endLongitude": -0.0754,
+                  "durationSeconds": 1200
+                }
+                """;
+
+        mockMvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.durationSeconds").value(1200))
+                .andExpect(jsonPath("$.paceSecondsPerKm").value(348));
+    }
+
+    @Test
+    void rejectsZeroDuration() throws Exception {
+        String request = """
+                {
+                  "startLocation": "Big Ben, London",
+                  "startLatitude": 51.5007,
+                  "startLongitude": -0.1246,
+                  "endLocation": "Tower Bridge, London",
+                  "endLatitude": 51.5055,
+                  "endLongitude": -0.0754,
+                  "durationSeconds": 0
+                }
+                """;
+
+        mockMvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("durationSeconds must be greater than 0"));
+    }
+
+    @Test
     void deletesRun() throws Exception {
         Run run = saveRun("Big Ben, London", 3.45, LocalDate.of(2026, 9, 28));
 
@@ -144,6 +183,6 @@ class RunControllerIntegrationTest {
 
     private Run saveRun(String startLocation, double distanceKm, LocalDate runDate) {
         return runRepository.save(new Run(startLocation, 51.5007, -0.1246,
-                "Tower Bridge, London", 51.5055, -0.0754, distanceKm, runDate));
+                "Tower Bridge, London", 51.5055, -0.0754, distanceKm, runDate, null));
     }
 }

@@ -37,6 +37,9 @@ public class Run {
     @Column(nullable = false)
     private LocalDate runDate;
 
+    // Optional: older runs and runs without a recorded time have no duration.
+    private Integer durationSeconds;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -45,7 +48,7 @@ public class Run {
 
     public Run(String startLocation, double startLatitude, double startLongitude,
                String endLocation, double endLatitude, double endLongitude,
-               double distanceKm, LocalDate runDate) {
+               double distanceKm, LocalDate runDate, Integer durationSeconds) {
         this.startLocation = startLocation;
         this.startLatitude = startLatitude;
         this.startLongitude = startLongitude;
@@ -54,6 +57,7 @@ public class Run {
         this.endLongitude = endLongitude;
         this.distanceKm = distanceKm;
         this.runDate = runDate;
+        this.durationSeconds = durationSeconds;
     }
 
     @PrePersist
@@ -95,6 +99,10 @@ public class Run {
 
     public LocalDate getRunDate() {
         return runDate;
+    }
+
+    public Integer getDurationSeconds() {
+        return durationSeconds;
     }
 
     public Instant getCreatedAt() {

@@ -30,7 +30,7 @@ public class RunService {
         Run run = new Run(
                 request.startLocation(), request.startLatitude(), request.startLongitude(),
                 request.endLocation(), request.endLatitude(), request.endLongitude(),
-                distanceKm, runDate);
+                distanceKm, runDate, request.durationSeconds());
 
         return RunResponse.from(runRepository.save(run));
     }
