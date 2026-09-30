@@ -13,10 +13,11 @@ Built as a time-boxed (~4 hour) take-home assignment: the focus is on simple, re
 - **Map** of the selected run with a green **S** (start) and a red **E** (end) marker, a dashed line between them, and the view zoomed to fit both points. The newest run is shown by default; click a run in the history to show it.
 - **Total distance** across all runs, shown prominently, together with the number of runs and the average distance per run.
 - **Run history**, newest first and grouped by day, with delete (with confirmation). Click a day to open its **daily summary** (`#day/YYYY-MM-DD`): distance, runs, time, average pace and the runs of that day.
+- **Run details page** (`#run/7`): click any run to see its distance, time, pace and average speed, how it compares with your other runs, its own map, and the start and end coordinates.
 - **Statistics page** (`#stats`) with total distance, total time, average distance and pace, longest and shortest run, and distance per month. The summary tiles link to it and to the run history.
 - **Persistent storage** in PostgreSQL, so data survives restarts of the app and the database.
 - **Validation and readable errors**: invalid input returns `400` with a clear message, a missing run returns `404`, and unexpected errors return a generic `500` without a stack trace.
-- **Tests and CI**: 23 backend tests and 26 frontend tests, run by GitHub Actions on every push.
+- **Tests and CI**: 23 backend tests and 31 frontend tests, run by GitHub Actions on every push.
 
 ## Tech stack
 
@@ -46,7 +47,7 @@ Vite dev server ── proxy /api ──► Spring Boot REST API (http://localho
 
 - **Backend layers**: controller → service → repository → entity. The controller only returns DTOs (Java records), never the JPA entity.
 - **Errors**: a single `@RestControllerAdvice` turns every error into `{ "message": ..., "timestamp": ... }`.
-- **Frontend**: plain React hooks (no Redux, no router library). The statistics and daily summary pages are chosen by the URL hash (`#stats`, `#day/2026-09-30`), so links and the browser back button work without a router. All HTTP calls live in `src/services/runApi.js` and use relative `/api/...` URLs; the Vite proxy forwards them to Spring Boot, so no CORS configuration is needed.
+- **Frontend**: plain React hooks (no Redux, no router library). The statistics, daily summary and run details pages are chosen by the URL hash (`#stats`, `#day/2026-09-30`, `#run/7`), so links and the browser back button work without a router. All HTTP calls live in `src/services/runApi.js` and use relative `/api/...` URLs; the Vite proxy forwards them to Spring Boot, so no CORS configuration is needed.
 
 ## Prerequisites
 
@@ -232,7 +233,8 @@ npm run lint
 - `RunList`: empty state, rendering, time and pace, grouping by day with a link to the daily summary, selecting a run, delete only after confirmation.
 - `RunForm`: submit stays disabled until both places are selected, typed dates are sent as `YYYY-MM-DD`, the time is sent in seconds, invalid dates or times block submitting, successful save, and error display.
 - `StatsPage`: longest and shortest run, average, and the empty state.
-- `DayPage`: totals and pace for one day only, showing a run on the map, and a day without runs.
+- `DayPage`: totals and pace for one day only, opening a run, and a day without runs.
+- `RunPage`: time, pace and speed, comparison with the other runs, the link to the day, a run without a time, and a run that does not exist.
 - `format` helpers: duration, pace and average pace over runs with and without a time.
 - `MapsErrorBoundary`: a Google Maps error shows a message instead of blanking the page.
 
@@ -283,7 +285,7 @@ frontend/
   src/
     App.jsx       page layout and state
     components/   DistanceSummary, RunForm, LocationSearch, RunMap, RunList, StatsPage,
-                  DayPage, StatCard, MapsErrorBoundary (+ tests)
+                  DayPage, RunPage, StatCard, MapsErrorBoundary (+ tests)
     utils/        format.js (dates, durations, pace)
     services/     runApi.js
 docker-compose.yml   PostgreSQL 16
