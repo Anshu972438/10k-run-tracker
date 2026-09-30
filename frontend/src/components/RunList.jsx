@@ -1,11 +1,17 @@
-// "2026-09-28" alone is parsed as midnight UTC, which shows the previous day in
-// time zones west of UTC. Adding a time makes the browser read it as local time.
-function formatDate(runDate) {
-  return new Date(`${runDate}T00:00:00`).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
+import { formatDate, formatDuration, formatPace } from '../utils/format'
+
+// Runs arrive newest first, so runs of the same day are next to each other.
+function groupByDay(runs) {
+  const days = []
+  for (const run of runs) {
+    const lastDay = days.at(-1)
+    if (lastDay?.date === run.runDate) {
+      lastDay.runs.push(run)
+    } else {
+      days.push({ date: run.runDate, runs: [run] })
+    }
+  }
+  return days
 }
 
 function RunList({ runs, isLoading = false, selectedRunId, onSelectRun, onDeleteRun }) {
@@ -29,29 +35,54 @@ function RunList({ runs, isLoading = false, selectedRunId, onSelectRun, onDelete
       ) : runs.length === 0 ? (
         <p className="empty-state">No runs yet. Add your first run to get started.</p>
       ) : (
-        <ul>
-          {runs.map((run) => (
-            <li key={run.id} className={run.id === selectedRunId ? 'selected' : ''}>
-              <button type="button" className="run-select" onClick={() => onSelectRun(run.id)}>
-                <span>
-                  <span className="run-route">
-                    {run.startLocation} → {run.endLocation}
+        <div className="run-days">
+          {groupByDay(runs).map((day) => {
+            const dayKm = day.runs.reduce((total, run) => total + run.distanceKm, 0)
+            return (
+              <section key={day.date} className="run-day">
+                <a className="day-header" href={`#day/${day.date}`}>
+                  <span className="day-date">{formatDate(day.date)}</span>
+                  <span className="day-total">
+                    {day.runs.length} {day.runs.length === 1 ? 'run' : 'runs'} ·{' '}
+                    {dayKm.toFixed(2)} km
                   </span>
-                  <span className="run-date">{formatDate(run.runDate)}</span>
-                </span>
-                <span className="run-distance">{run.distanceKm.toFixed(2)} km</span>
-              </button>
-              <button
-                type="button"
-                className="run-delete"
-                onClick={() => handleDelete(run)}
-                aria-label={`Delete run from ${run.startLocation} to ${run.endLocation}`}
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+                </a>
+                <ul>
+                  {day.runs.map((run) => (
+                    <li key={run.id} className={run.id === selectedRunId ? 'selected' : ''}>
+                      <button
+                        type="button"
+                        className="run-select"
+                        onClick={() => onSelectRun(run.id)}
+                      >
+                        <span>
+                          <span className="run-route">
+                            {run.startLocation} → {run.endLocation}
+                          </span>
+                          {run.durationSeconds != null && (
+                            <span className="run-meta">
+                              {formatDuration(run.durationSeconds)} ·{' '}
+                              {formatPace(run.paceSecondsPerKm)}
+                            </span>
+                          )}
+                        </span>
+                        <span className="run-distance">{run.distanceKm.toFixed(2)} km</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="run-delete"
+                        onClick={() => handleDelete(run)}
+                        aria-label={`Delete run from ${run.startLocation} to ${run.endLocation}`}
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )
+          })}
+        </div>
       )}
     </section>
   )

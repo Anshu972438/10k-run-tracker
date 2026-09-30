@@ -1,3 +1,6 @@
+import StatCard from './StatCard'
+import { averagePace, formatDuration, formatPace, totalDuration } from '../utils/format'
+
 function formatMonth(month) {
   return new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {
     month: 'long',
@@ -5,18 +8,10 @@ function formatMonth(month) {
   })
 }
 
-function StatCard({ label, value, detail }) {
-  return (
-    <div className="stat-card">
-      <p className="stat-card-label">{label}</p>
-      <p className="stat-card-value">{value}</p>
-      {detail && <p className="stat-card-detail">{detail}</p>}
-    </div>
-  )
-}
-
 function StatsPage({ runs, summary }) {
   const averageKm = summary.totalRuns > 0 ? summary.totalDistanceKm / summary.totalRuns : 0
+  const totalSeconds = totalDuration(runs)
+  const pace = averagePace(runs)
   const longestRun = runs.reduce(
     (longest, run) => (longest === null || run.distanceKm > longest.distanceKm ? run : longest),
     null,
@@ -52,6 +47,15 @@ function StatsPage({ runs, summary }) {
             <StatCard label="Total distance" value={`${summary.totalDistanceKm.toFixed(2)} km`} />
             <StatCard label="Runs" value={summary.totalRuns} />
             <StatCard label="Average per run" value={`${averageKm.toFixed(2)} km`} />
+            <StatCard
+              label="Total time"
+              value={totalSeconds > 0 ? formatDuration(totalSeconds) : '–'}
+            />
+            <StatCard
+              label="Average pace"
+              value={pace !== null ? formatPace(pace) : '–'}
+              detail="Runs with a recorded time"
+            />
             <StatCard
               label="Longest run"
               value={`${longestRun.distanceKm.toFixed(2)} km`}

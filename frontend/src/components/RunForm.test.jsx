@@ -67,6 +67,30 @@ describe('RunForm', () => {
     expect(createRun).toHaveBeenCalledWith(expect.objectContaining({ runDate: '2026-09-28' }))
   })
 
+  it('sends the time in seconds', async () => {
+    createRun.mockResolvedValue({ id: 9 })
+    render(<RunForm onRunCreated={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Pick Start location' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Pick End location' }))
+    await userEvent.type(screen.getByLabelText('Minutes'), '32')
+    await userEvent.type(screen.getByLabelText('Seconds'), '10')
+    await userEvent.click(screen.getByRole('button', { name: 'Add run' }))
+
+    expect(createRun).toHaveBeenCalledWith(expect.objectContaining({ durationSeconds: 1930 }))
+  })
+
+  it('blocks submitting an invalid time', async () => {
+    render(<RunForm onRunCreated={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Pick Start location' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Pick End location' }))
+    await userEvent.type(screen.getByLabelText('Minutes'), '75')
+
+    expect(screen.getByText(/enter a time above zero/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add run' })).toBeDisabled()
+  })
+
   it('blocks submitting an invalid date', async () => {
     render(<RunForm onRunCreated={vi.fn()} />)
 

@@ -476,13 +476,6 @@ gmp-place-autocomplete {
   font-weight: 600;
 }
 
-.run-date {
-  display: block;
-  margin-top: 4px;
-  color: var(--color-muted);
-  font-size: 13px;
-}
-
 .run-distance {
   flex-shrink: 0;
   padding: 4px 10px;
@@ -793,4 +786,161 @@ gmp-place-autocomplete {
   .toast {
     animation: none;
   }
+}
+
+/* Run duration */
+
+.duration-field {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.duration-field legend {
+  margin-bottom: 6px;
+  padding: 0;
+}
+
+.duration-field label {
+  position: relative;
+}
+
+.duration-field input {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-text);
+  font: inherit;
+  appearance: textfield;
+}
+
+.duration-field input::-webkit-inner-spin-button,
+.duration-field input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.duration-field input:hover {
+  border-color: #94a3b8;
+}
+
+.duration-field input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgb(22 163 74 / 0.15);
+}
+
+.duration-field span {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  color: var(--color-muted);
+  font-size: 13px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.run-meta {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Run history grouped by day */
+
+.run-days {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 8px 6px;
+  padding: 4px 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.day-date {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #334155;
+}
+
+.day-total {
+  color: var(--color-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.day-total::after {
+  content: ' →';
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.day-header:hover .day-date {
+  color: var(--color-primary-dark);
+}
+
+.day-header:hover .day-total::after {
+  opacity: 1;
+}
+
+.day-header:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Runs on the day summary page */
+
+.day-runs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-runs li {
+  display: block;
+}
+
+.day-run {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.day-run:hover {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
 }

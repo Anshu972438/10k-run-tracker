@@ -13,6 +13,8 @@ const run = {
   endLongitude: -0.0754,
   distanceKm: 3.45,
   runDate: '2026-09-28',
+  durationSeconds: 1200,
+  paceSecondsPerKm: 348,
 }
 
 describe('RunList', () => {
@@ -27,6 +29,20 @@ describe('RunList', () => {
 
     expect(screen.getByText('Big Ben → Tower Bridge')).toBeInTheDocument()
     expect(screen.getByText('3.45 km')).toBeInTheDocument()
+  })
+
+  it('shows the time and pace of a run', () => {
+    render(<RunList runs={[run]} onSelectRun={vi.fn()} onDeleteRun={vi.fn()} />)
+
+    expect(screen.getByText('20:00 · 5:48 /km')).toBeInTheDocument()
+  })
+
+  it('groups runs by day and links each day to its summary', () => {
+    const sameDayRun = { ...run, id: 2, startLocation: 'Tower Bridge', endLocation: 'Big Ben' }
+    render(<RunList runs={[run, sameDayRun]} onSelectRun={vi.fn()} onDeleteRun={vi.fn()} />)
+
+    const dayLink = screen.getByRole('link', { name: /2 runs · 6.90 km/ })
+    expect(dayLink).toHaveAttribute('href', '#day/2026-09-28')
   })
 
   it('selects a run when it is clicked', async () => {

@@ -23,10 +23,26 @@ function toDisplayDate(isoDate) {
   return `${day}/${month}/${year}`
 }
 
+// Empty fields mean "no time recorded". Returns undefined when the input is not valid.
+function toDurationSeconds(hours, minutes, seconds) {
+  if (hours === '' && minutes === '' && seconds === '') {
+    return null
+  }
+  const [h, m, s] = [hours, minutes, seconds].map((value) => (value === '' ? 0 : Number(value)))
+  const isWholeNumber = [h, m, s].every((value) => Number.isInteger(value) && value >= 0)
+  if (!isWholeNumber || m > 59 || s > 59 || h * 3600 + m * 60 + s === 0) {
+    return undefined
+  }
+  return h * 3600 + m * 60 + s
+}
+
 function RunForm({ onRunCreated }) {
   const [start, setStart] = useState(null)
   const [end, setEnd] = useState(null)
   const [dateText, setDateText] = useState('')
+  const [hours, setHours] = useState('')
+  const [minutes, setMinutes] = useState('')
+  const [seconds, setSeconds] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   // Changing the key remounts the search boxes, which clears them after a run is saved.
@@ -35,7 +51,10 @@ function RunForm({ onRunCreated }) {
 
   const runDate = toIsoDate(dateText)
   const isDateInvalid = dateText.trim() !== '' && runDate === null
-  const canSubmit = start !== null && end !== null && !isDateInvalid && !isSubmitting
+  const durationSeconds = toDurationSeconds(hours, minutes, seconds)
+  const isDurationInvalid = durationSeconds === undefined
+  const canSubmit =
+    start !== null && end !== null && !isDateInvalid && !isDurationInvalid && !isSubmitting
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -50,10 +69,14 @@ function RunForm({ onRunCreated }) {
         endLatitude: end.latitude,
         endLongitude: end.longitude,
         runDate,
+        durationSeconds,
       })
       setStart(null)
       setEnd(null)
       setDateText('')
+      setHours('')
+      setMinutes('')
+      setSeconds('')
       setFormKey((key) => key + 1)
       onRunCreated(createdRun)
     } catch (err) {
@@ -108,6 +131,50 @@ function RunForm({ onRunCreated }) {
         />
       </div>
       {isDateInvalid && <p className="field-error">Enter a valid date as dd/mm/yyyy.</p>}
+      <fieldset className="duration-field">
+        <legend className="field-label">Time (optional, used for your pace)</legend>
+        <label>
+          <input
+            type="number"
+            inputMode="numeric"
+            min="0"
+            placeholder="0"
+            value={hours}
+            onChange={(event) => setHours(event.target.value)}
+            aria-label="Hours"
+          />
+          <span>h</span>
+        </label>
+        <label>
+          <input
+            type="number"
+            inputMode="numeric"
+            min="0"
+            max="59"
+            placeholder="0"
+            value={minutes}
+            onChange={(event) => setMinutes(event.target.value)}
+            aria-label="Minutes"
+          />
+          <span>min</span>
+        </label>
+        <label>
+          <input
+            type="number"
+            inputMode="numeric"
+            min="0"
+            max="59"
+            placeholder="0"
+            value={seconds}
+            onChange={(event) => setSeconds(event.target.value)}
+            aria-label="Seconds"
+          />
+          <span>sec</span>
+        </label>
+      </fieldset>
+      {isDurationInvalid && (
+        <p className="field-error">Enter a time above zero, with minutes and seconds up to 59.</p>
+      )}
       {error && <p className="error">{error}</p>}
       <button type="submit" disabled={!canSubmit}>
         {isSubmitting ? 'Saving...' : 'Add run'}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { APIProvider } from '@vis.gl/react-google-maps'
+import DayPage from './components/DayPage'
 import DistanceSummary from './components/DistanceSummary'
 import MapsErrorBoundary from './components/MapsErrorBoundary'
 import RunForm from './components/RunForm'
@@ -17,12 +18,14 @@ function App() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [notice, setNotice] = useState('')
-  // The page is chosen by the URL hash ("#stats"), so the browser back button works without a router.
+  // The page is chosen by the URL hash ("#stats", "#day/2026-09-30"), so the browser back
+  // button works without a router.
   const [page, setPage] = useState(window.location.hash)
 
   // Show the clicked run, or the newest run when nothing is selected (or it was deleted).
   const selectedRun = runs.find((run) => run.id === selectedRunId) ?? runs[0]
   const isStatsPage = page === '#stats'
+  const dayPageDate = page.match(/^#day\/(\d{4}-\d{2}-\d{2})$/)?.[1]
 
   function loadRuns() {
     return Promise.all([getRuns(), getSummary()])
@@ -62,6 +65,11 @@ function App() {
     loadRuns()
   }
 
+  function showRunOnMap(id) {
+    setSelectedRunId(id)
+    window.location.hash = ''
+  }
+
   function handleDeleteRun(id) {
     deleteRun(id)
       .then(() => {
@@ -98,6 +106,8 @@ function App() {
         )}
         {isStatsPage ? (
           <StatsPage runs={runs} summary={summary} />
+        ) : dayPageDate ? (
+          <DayPage date={dayPageDate} runs={runs} onShowRun={showRunOnMap} />
         ) : (
           <>
             <DistanceSummary
