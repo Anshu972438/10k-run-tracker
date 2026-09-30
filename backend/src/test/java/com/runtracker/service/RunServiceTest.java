@@ -13,12 +13,15 @@ import com.runtracker.dto.RunSummaryResponse;
 import com.runtracker.entity.Run;
 import com.runtracker.exception.RunNotFoundException;
 import com.runtracker.repository.RunRepository;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,8 +34,14 @@ class RunServiceTest {
     @Mock
     private DistanceCalculator distanceCalculator;
 
-    @InjectMocks
     private RunService runService;
+
+    @BeforeEach
+    void createService() {
+        // A fixed clock makes "today" predictable, even when the tests run around midnight.
+        Clock clock = Clock.fixed(Instant.parse("2026-09-15T08:00:00Z"), ZoneOffset.UTC);
+        runService = new RunService(runRepository, distanceCalculator, clock);
+    }
 
     @Test
     void createRunCalculatesDistanceAndSavesRun() {
@@ -74,7 +83,7 @@ class RunServiceTest {
 
         RunResponse response = runService.createRun(request);
 
-        assertThat(response.runDate()).isEqualTo(LocalDate.now());
+        assertThat(response.runDate()).isEqualTo(LocalDate.of(2026, 9, 15));
     }
 
     @Test
@@ -83,7 +92,7 @@ class RunServiceTest {
                 3.18, LocalDate.of(2026, 9, 30), null);
         Run older = new Run("Big Ben", 51.5007, -0.1246, "Tower Bridge", 51.5055, -0.0754,
                 3.45, LocalDate.of(2026, 9, 28), null);
-        when(runRepository.findAllByOrderByRunDateDescCreatedAtDesc()).thenReturn(List.of(newer, older));
+        when(runRepository.findAllByOrderByRunDateDescCreatedAtDescIdDesc()).thenReturn(List.of(newer, older));
 
         List<RunResponse> runs = runService.getRuns();
 

@@ -30,6 +30,14 @@ class DistanceCalculatorTest {
     }
 
     @Test
+    void calculatesHalfTheEarthForOppositePoints() {
+        // These points are exactly opposite each other; rounding used to turn the result into 0.
+        double distance = distanceCalculator.distanceKm(-83, -179, 83, 1);
+
+        assertThat(distance).isEqualTo(20015.09);
+    }
+
+    @Test
     void distanceIsTheSameInBothDirections() {
         double there = distanceCalculator.distanceKm(51.5007, -0.1246, 51.5055, -0.0754);
         double back = distanceCalculator.distanceKm(51.5055, -0.0754, 51.5007, -0.1246);

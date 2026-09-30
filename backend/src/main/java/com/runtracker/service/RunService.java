@@ -6,6 +6,7 @@ import com.runtracker.dto.RunSummaryResponse;
 import com.runtracker.entity.Run;
 import com.runtracker.exception.RunNotFoundException;
 import com.runtracker.repository.RunRepository;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -15,17 +16,19 @@ public class RunService {
 
     private final RunRepository runRepository;
     private final DistanceCalculator distanceCalculator;
+    private final Clock clock;
 
-    public RunService(RunRepository runRepository, DistanceCalculator distanceCalculator) {
+    public RunService(RunRepository runRepository, DistanceCalculator distanceCalculator, Clock clock) {
         this.runRepository = runRepository;
         this.distanceCalculator = distanceCalculator;
+        this.clock = clock;
     }
 
     public RunResponse createRun(CreateRunRequest request) {
         double distanceKm = distanceCalculator.distanceKm(
                 request.startLatitude(), request.startLongitude(),
                 request.endLatitude(), request.endLongitude());
-        LocalDate runDate = request.runDate() != null ? request.runDate() : LocalDate.now();
+        LocalDate runDate = request.runDate() != null ? request.runDate() : LocalDate.now(clock);
 
         Run run = new Run(
                 request.startLocation(), request.startLatitude(), request.startLongitude(),
@@ -36,7 +39,7 @@ public class RunService {
     }
 
     public List<RunResponse> getRuns() {
-        return runRepository.findAllByOrderByRunDateDescCreatedAtDesc().stream()
+        return runRepository.findAllByOrderByRunDateDescCreatedAtDescIdDesc().stream()
                 .map(RunResponse::from)
                 .toList();
     }

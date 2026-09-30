@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface RunRepository extends JpaRepository<Run, Long> {
 
-    List<Run> findAllByOrderByRunDateDescCreatedAtDesc();
+    List<Run> findAllByOrderByRunDateDescCreatedAtDescIdDesc();
 
     @Query("SELECT COALESCE(SUM(r.distanceKm), 0.0) FROM Run r")
     double sumDistanceKm();

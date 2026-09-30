@@ -9,11 +9,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.runtracker.entity.Run;
 import com.runtracker.repository.RunRepository;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -21,6 +27,17 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 class RunControllerIntegrationTest {
+
+    // Replaces the real clock so the default run date is predictable in tests.
+    @TestConfiguration
+    static class FixedClockConfig {
+
+        @Bean
+        @Primary
+        Clock fixedClock() {
+            return Clock.fixed(Instant.parse("2026-09-15T08:00:00Z"), ZoneOffset.UTC);
+        }
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -70,7 +87,7 @@ class RunControllerIntegrationTest {
 
         mockMvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON).content(request))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.runDate").value(LocalDate.now().toString()));
+                .andExpect(jsonPath("$.runDate").value("2026-09-15"));
     }
 
     @Test
@@ -161,6 +178,43 @@ class RunControllerIntegrationTest {
         mockMvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON).content(request))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("durationSeconds must be greater than 0"));
+    }
+
+    @Test
+    void rejectsFutureRunDate() throws Exception {
+        String request = """
+                {
+                  "startLocation": "Big Ben, London",
+                  "startLatitude": 51.5007,
+                  "startLongitude": -0.1246,
+                  "endLocation": "Tower Bridge, London",
+                  "endLatitude": 51.5055,
+                  "endLongitude": -0.0754,
+                  "runDate": "2999-01-01"
+                }
+                """;
+
+        mockMvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("runDate must be a date in the past or in the present"));
+    }
+
+    @Test
+    void rejectsDecimalDuration() throws Exception {
+        String request = """
+                {
+                  "startLocation": "Big Ben, London",
+                  "startLatitude": 51.5007,
+                  "startLongitude": -0.1246,
+                  "endLocation": "Tower Bridge, London",
+                  "endLatitude": 51.5055,
+                  "endLongitude": -0.0754,
+                  "durationSeconds": 1.9
+                }
+                """;
+
+        mockMvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

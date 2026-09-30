@@ -5,6 +5,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
@@ -16,7 +17,7 @@ public record CreateRunRequest(
         @NotBlank @Size(max = 255) String endLocation,
         @NotNull @DecimalMin("-90") @DecimalMax("90") Double endLatitude,
         @NotNull @DecimalMin("-180") @DecimalMax("180") Double endLongitude,
-        LocalDate runDate,
+        @PastOrPresent LocalDate runDate,
         @Positive @Max(86400) Integer durationSeconds
 ) {
 }
