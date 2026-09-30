@@ -43,28 +43,44 @@ function App() {
   }
 
   return (
-    <main className="app">
-      <h1>10K Run Tracker</h1>
-      {error && <p className="error">{error}</p>}
-      <DistanceSummary totalDistanceKm={summary.totalDistanceKm} totalRuns={summary.totalRuns} />
-      {GOOGLE_MAPS_API_KEY ? (
-        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-          <RunForm onRunCreated={handleRunCreated} />
-          <RunMap run={selectedRun} />
-        </APIProvider>
-      ) : (
-        <p className="map-message">
-          Google Maps is not configured, so runs cannot be added and the map is hidden. Add
-          VITE_GOOGLE_MAPS_API_KEY to frontend/.env.local and restart the dev server.
-        </p>
-      )}
-      <RunList
-        runs={runs}
-        selectedRunId={selectedRun?.id}
-        onSelectRun={setSelectedRunId}
-        onDeleteRun={handleDeleteRun}
-      />
-    </main>
+    <>
+      <header className="app-header">
+        <div className="app-header-inner">
+          <span className="brand-mark">10K</span>
+          <div>
+            <h1>10K Run Tracker</h1>
+            <p className="app-tagline">Log your runs and watch the kilometers add up.</p>
+          </div>
+        </div>
+      </header>
+      <main className="app">
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
+        <DistanceSummary totalDistanceKm={summary.totalDistanceKm} totalRuns={summary.totalRuns} />
+        <div className="layout">
+          {GOOGLE_MAPS_API_KEY ? (
+            <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+              <RunForm onRunCreated={handleRunCreated} />
+              <RunMap run={selectedRun} />
+            </APIProvider>
+          ) : (
+            <p className="map-message">
+              Google Maps is not configured, so runs cannot be added and the map is hidden. Add
+              VITE_GOOGLE_MAPS_API_KEY to frontend/.env.local and restart the dev server.
+            </p>
+          )}
+          <RunList
+            runs={runs}
+            selectedRunId={selectedRun?.id}
+            onSelectRun={setSelectedRunId}
+            onDeleteRun={handleDeleteRun}
+          />
+        </div>
+      </main>
+    </>
   )
 }
 
