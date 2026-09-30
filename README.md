@@ -8,14 +8,15 @@ Built as a time-boxed (~4 hour) take-home assignment: the focus is on simple, re
 
 ## Features
 
-- **Add a run** with a start location, an end location and an optional date (defaults to today). Locations are picked with Google Places search, so every run has exact coordinates.
+- **Add a run** with a start location, an end location, an optional date (defaults to today) and an optional time (h/min/sec). Locations are picked with Google Places search, so every run has exact coordinates.
+- **Pace** (min/km) for every run with a time, calculated by the server from the time and the distance.
 - **Map** of the selected run with a green **S** (start) and a red **E** (end) marker, a dashed line between them, and the view zoomed to fit both points. The newest run is shown by default; click a run in the history to show it.
 - **Total distance** across all runs, shown prominently, together with the number of runs and the average distance per run.
-- **Run history**, newest first, with delete (with confirmation).
-- **Statistics page** (`#stats`) with total, average, longest and shortest run, and distance per month. The summary tiles link to it and to the run history.
+- **Run history**, newest first and grouped by day, with delete (with confirmation). Click a day to open its **daily summary** (`#day/YYYY-MM-DD`): distance, runs, time, average pace and the runs of that day.
+- **Statistics page** (`#stats`) with total distance, total time, average distance and pace, longest and shortest run, and distance per month. The summary tiles link to it and to the run history.
 - **Persistent storage** in PostgreSQL, so data survives restarts of the app and the database.
 - **Validation and readable errors**: invalid input returns `400` with a clear message, a missing run returns `404`, and unexpected errors return a generic `500` without a stack trace.
-- **Tests and CI**: 20 backend tests and 15 frontend tests, run by GitHub Actions on every push.
+- **Tests and CI**: 23 backend tests and 26 frontend tests, run by GitHub Actions on every push.
 
 ## Tech stack
 
@@ -45,7 +46,7 @@ Vite dev server ── proxy /api ──► Spring Boot REST API (http://localho
 
 - **Backend layers**: controller → service → repository → entity. The controller only returns DTOs (Java records), never the JPA entity.
 - **Errors**: a single `@RestControllerAdvice` turns every error into `{ "message": ..., "timestamp": ... }`.
-- **Frontend**: plain React hooks (no Redux, no router library). The statistics page is chosen by the URL hash (`#stats`), so links and the browser back button work without a router. All HTTP calls live in `src/services/runApi.js` and use relative `/api/...` URLs; the Vite proxy forwards them to Spring Boot, so no CORS configuration is needed.
+- **Frontend**: plain React hooks (no Redux, no router library). The statistics and daily summary pages are chosen by the URL hash (`#stats`, `#day/2026-09-30`), so links and the browser back button work without a router. All HTTP calls live in `src/services/runApi.js` and use relative `/api/...` URLs; the Vite proxy forwards them to Spring Boot, so no CORS configuration is needed.
 
 ## Prerequisites
 
@@ -136,20 +137,20 @@ Base URL: `http://localhost:8080/api/runs`
 | `GET` | `/api/runs/summary` | Total runs and total distance | `200` | |
 | `DELETE` | `/api/runs/{id}` | Delete a run | `204` | `404` not found, `400` invalid id |
 
-**Create a run** (`runDate` is optional and defaults to today):
+**Create a run** (`runDate` is optional and defaults to today; `durationSeconds` is optional):
 
 ```bash
 curl -i -X POST http://localhost:8080/api/runs \
   -H "Content-Type: application/json" \
   -d '{"startLocation":"Big Ben, London","startLatitude":51.5007,"startLongitude":-0.1246,
        "endLocation":"Tower Bridge, London","endLatitude":51.5055,"endLongitude":-0.0754,
-       "runDate":"2026-09-28"}'
+       "runDate":"2026-09-28","durationSeconds":1200}'
 ```
 
 ```json
 {"id":1,"startLocation":"Big Ben, London","startLatitude":51.5007,"startLongitude":-0.1246,
  "endLocation":"Tower Bridge, London","endLatitude":51.5055,"endLongitude":-0.0754,
- "distanceKm":3.45,"runDate":"2026-09-28"}
+ "distanceKm":3.45,"runDate":"2026-09-28","durationSeconds":1200,"paceSecondsPerKm":348}
 ```
 
 **List runs**
@@ -174,7 +175,7 @@ curl http://localhost:8080/api/runs/summary
 curl -i -X DELETE http://localhost:8080/api/runs/1
 ```
 
-**Validation rules**: both location names are required (max 255 characters), all four coordinates are required, latitude must be between -90 and 90, and longitude between -180 and 180. Example error:
+**Validation rules**: both location names are required (max 255 characters), all four coordinates are required, latitude must be between -90 and 90, longitude between -180 and 180, and `durationSeconds` (if given) between 1 and 86400 (24 hours). Example error:
 
 ```json
 {"message":"startLatitude must be less than or equal to 90, startLocation must not be blank","timestamp":"2026-09-30T10:15:30Z"}
@@ -195,7 +196,10 @@ Table `runs`:
 | `end_longitude` | double precision | not null |
 | `distance_km` | double precision | calculated by the server, 2 decimals |
 | `run_date` | date | not null, defaults to today |
+| `duration_seconds` | integer | optional; runs without a recorded time have none |
 | `created_at` | timestamp with time zone | set when the run is saved |
+
+**Pace is not stored** either: `paceSecondsPerKm` in the API response is calculated from `duration_seconds / distance_km` (rounded to whole seconds), and is `null` when a run has no time.
 
 The total distance is **not stored**. It is always calculated with a `SUM` query over the `runs` table, so it can never get out of sync with the runs (for example after a delete), and it is 0 when there are no runs.
 
@@ -213,8 +217,8 @@ cd backend
 ```
 
 - `DistanceCalculatorTest`: Haversine results, same point, symmetry, rounding.
-- `RunServiceTest`: business rules with Mockito and no Spring context (default date, distance, ordering, rounded total, empty summary, delete and not found).
-- `RunControllerIntegrationTest`: MockMvc + H2 through all layers (create, list, summary, empty summary, invalid input, delete, not found).
+- `RunServiceTest`: business rules with Mockito and no Spring context (default date, distance, duration and pace, ordering, rounded total, empty summary, delete and not found).
+- `RunControllerIntegrationTest`: MockMvc + H2 through all layers (create, create with duration and pace, list, summary, empty summary, invalid input, zero duration, delete, not found).
 
 **Frontend** (Google Places and the API are mocked):
 
@@ -225,9 +229,11 @@ npm run lint
 ```
 
 - `DistanceSummary`: total, run count, average, and the zero state.
-- `RunList`: empty state, rendering, selecting a run, delete only after confirmation.
-- `RunForm`: submit stays disabled until both places are selected, typed dates are sent as `YYYY-MM-DD`, invalid dates block submitting, successful save, and error display.
+- `RunList`: empty state, rendering, time and pace, grouping by day with a link to the daily summary, selecting a run, delete only after confirmation.
+- `RunForm`: submit stays disabled until both places are selected, typed dates are sent as `YYYY-MM-DD`, the time is sent in seconds, invalid dates or times block submitting, successful save, and error display.
 - `StatsPage`: longest and shortest run, average, and the empty state.
+- `DayPage`: totals and pace for one day only, showing a run on the map, and a day without runs.
+- `format` helpers: duration, pace and average pace over runs with and without a time.
 - `MapsErrorBoundary`: a Google Maps error shows a message instead of blanking the page.
 
 **CI**: `.github/workflows/ci.yml` runs the backend tests and the frontend lint, tests and build on every push to `main` and on pull requests.
@@ -277,7 +283,8 @@ frontend/
   src/
     App.jsx       page layout and state
     components/   DistanceSummary, RunForm, LocationSearch, RunMap, RunList, StatsPage,
-                  MapsErrorBoundary (+ tests)
+                  DayPage, StatCard, MapsErrorBoundary (+ tests)
+    utils/        format.js (dates, durations, pace)
     services/     runApi.js
 docker-compose.yml   PostgreSQL 16
 .github/workflows/   CI
