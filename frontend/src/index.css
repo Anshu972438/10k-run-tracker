@@ -944,3 +944,123 @@ gmp-place-autocomplete {
   border-color: #bbf7d0;
   background: #f0fdf4;
 }
+
+/* Run details page */
+
+.run-page-skeleton {
+  height: 320px;
+}
+
+.inline-link {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.inline-link:hover {
+  text-decoration: underline;
+}
+
+.run-page-note {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.comparison-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.comparison-list li {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.run-page-body {
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, 360px);
+  gap: 20px;
+  align-items: start;
+}
+
+.run-page-map .run-map {
+  position: static;
+  height: 420px;
+  min-height: 0;
+}
+
+.run-page-map .map-message {
+  min-height: 420px;
+}
+
+.route-points {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+}
+
+.route-points dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.route-points dd {
+  margin: 6px 0 0;
+  font-weight: 600;
+}
+
+.route-points .route-coordinates {
+  margin-top: 2px;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.route-pin {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.route-pin-start {
+  background: #2e7d32;
+}
+
+.route-pin-end {
+  background: #c62828;
+}
+
+.route-note {
+  margin: 16px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .run-page-body {
+    grid-template-columns: 1fr;
+  }
+
+  .run-page-map .run-map {
+    height: 320px;
+  }
+}

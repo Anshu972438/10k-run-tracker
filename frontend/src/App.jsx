@@ -6,6 +6,7 @@ import MapsErrorBoundary from './components/MapsErrorBoundary'
 import RunForm from './components/RunForm'
 import RunList from './components/RunList'
 import RunMap from './components/RunMap'
+import RunPage from './components/RunPage'
 import StatsPage from './components/StatsPage'
 import { deleteRun, getRuns, getSummary } from './services/runApi'
 
@@ -18,14 +19,16 @@ function App() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [notice, setNotice] = useState('')
-  // The page is chosen by the URL hash ("#stats", "#day/2026-09-30"), so the browser back
-  // button works without a router.
+  // The page is chosen by the URL hash ("#stats", "#day/2026-09-30", "#run/7"), so the browser
+  // back button works without a router.
   const [page, setPage] = useState(window.location.hash)
 
   // Show the clicked run, or the newest run when nothing is selected (or it was deleted).
   const selectedRun = runs.find((run) => run.id === selectedRunId) ?? runs[0]
   const isStatsPage = page === '#stats'
   const dayPageDate = page.match(/^#day\/(\d{4}-\d{2}-\d{2})$/)?.[1]
+  const runPageId = page.match(/^#run\/(\d+)$/)?.[1]
+  const runPageRun = runs.find((run) => String(run.id) === runPageId)
 
   function loadRuns() {
     return Promise.all([getRuns(), getSummary()])
@@ -65,9 +68,10 @@ function App() {
     loadRuns()
   }
 
-  function showRunOnMap(id) {
+  // Opening a run also selects it, so the dashboard map shows it when the user goes back.
+  function openRun(id) {
     setSelectedRunId(id)
-    window.location.hash = ''
+    window.location.hash = `run/${id}`
   }
 
   function handleDeleteRun(id) {
@@ -107,7 +111,29 @@ function App() {
         {isStatsPage ? (
           <StatsPage runs={runs} summary={summary} />
         ) : dayPageDate ? (
-          <DayPage date={dayPageDate} runs={runs} onShowRun={showRunOnMap} />
+          <DayPage date={dayPageDate} runs={runs} onShowRun={openRun} />
+        ) : runPageId ? (
+          <RunPage
+            run={runPageRun}
+            runs={runs}
+            summary={summary}
+            isLoading={isLoading}
+            map={
+              GOOGLE_MAPS_API_KEY && runPageRun ? (
+                <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+                  <MapsErrorBoundary
+                    fallback={
+                      <p className="map-message">
+                        The map could not load. Check the Google Maps API key.
+                      </p>
+                    }
+                  >
+                    <RunMap run={runPageRun} />
+                  </MapsErrorBoundary>
+                </APIProvider>
+              ) : null
+            }
+          />
         ) : (
           <>
             <DistanceSummary
@@ -147,7 +173,7 @@ function App() {
                 runs={runs}
                 isLoading={isLoading}
                 selectedRunId={selectedRun?.id}
-                onSelectRun={setSelectedRunId}
+                onSelectRun={openRun}
                 onDeleteRun={handleDeleteRun}
               />
             </div>

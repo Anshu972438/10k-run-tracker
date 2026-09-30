@@ -44,7 +44,7 @@ describe('DayPage', () => {
     expect(screen.queryByText(/India Gate/)).not.toBeInTheDocument()
   })
 
-  it('shows a run on the map when it is clicked', async () => {
+  it('opens a run when it is clicked', async () => {
     const onShowRun = vi.fn()
     render(<DayPage date="2026-09-30" runs={runs} onShowRun={onShowRun} />)
 
