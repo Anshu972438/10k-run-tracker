@@ -23,6 +23,15 @@ export async function createRun(run) {
   return handleResponse(response)
 }
 
+export async function updateRun(id, changes) {
+  const response = await fetch(`/api/runs/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(changes),
+  })
+  return handleResponse(response)
+}
+
 export async function deleteRun(id) {
   return handleResponse(await fetch(`/api/runs/${id}`, { method: 'DELETE' }))
 }

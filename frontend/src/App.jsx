@@ -8,7 +8,7 @@ import RunList from './components/RunList'
 import RunMap from './components/RunMap'
 import RunPage from './components/RunPage'
 import StatsPage from './components/StatsPage'
-import { deleteRun, getRuns, getSummary } from './services/runApi'
+import { deleteRun, getRuns, getSummary, updateRun } from './services/runApi'
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
 
@@ -84,6 +84,14 @@ function App() {
     window.location.hash = `run/${id}`
   }
 
+  // Returns the promise so the edit form can show an error if saving fails.
+  function handleUpdateRun(id, changes) {
+    return updateRun(id, changes).then(() => {
+      setNotice('Run updated')
+      return loadRuns()
+    })
+  }
+
   function handleDeleteRun(id) {
     deleteRun(id)
       .then(() => {
@@ -130,6 +138,7 @@ function App() {
             summary={summary}
             isLoading={isLoading}
             loadFailed={Boolean(error) && runs.length === 0}
+            onUpdateRun={handleUpdateRun}
             map={
               GOOGLE_MAPS_API_KEY && runPageRun ? (
                 <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>

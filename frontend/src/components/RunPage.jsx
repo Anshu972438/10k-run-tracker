@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import EditRunForm from './EditRunForm'
 import StatCard from './StatCard'
 import { averagePace, formatDate, formatDuration, formatPace } from '../utils/format'
 
@@ -30,7 +32,9 @@ function describeDistance(run, summary) {
   return `${Math.abs(difference).toFixed(2)} km ${direction} than your average run (${average.toFixed(2)} km)`
 }
 
-function RunPage({ run, runs, summary, isLoading, loadFailed = false, map }) {
+function RunPage({ run, runs, summary, isLoading, loadFailed = false, map, onUpdateRun }) {
+  const [isEditing, setIsEditing] = useState(false)
+
   if (isLoading) {
     return (
       <section className="stats-page">
@@ -68,9 +72,16 @@ function RunPage({ run, runs, summary, isLoading, loadFailed = false, map }) {
         ← Back to run history
       </a>
       <div>
-        <h2>
-          {run.startLocation} → {run.endLocation}
-        </h2>
+        <div className="run-page-header">
+          <h2>
+            {run.startLocation} → {run.endLocation}
+          </h2>
+          {onUpdateRun && !isEditing && (
+            <button type="button" className="secondary-button" onClick={() => setIsEditing(true)}>
+              Edit date or time
+            </button>
+          )}
+        </div>
         <p className="stats-intro">
           <a className="inline-link" href={`#day/${run.runDate}`}>
             {formatDate(run.runDate, {
@@ -82,6 +93,13 @@ function RunPage({ run, runs, summary, isLoading, loadFailed = false, map }) {
           </a>
         </p>
       </div>
+      {isEditing && (
+        <EditRunForm
+          run={run}
+          onSave={(changes) => onUpdateRun(run.id, changes).then(() => setIsEditing(false))}
+          onCancel={() => setIsEditing(false)}
+        />
+      )}
       <div className="stats-grid">
         <StatCard label="Distance" value={`${run.distanceKm.toFixed(2)} km`} />
         <StatCard label="Time" value={hasTime ? formatDuration(run.durationSeconds) : '–'} />
