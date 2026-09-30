@@ -109,7 +109,18 @@ describe('RunForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Pick End location' }))
     await userEvent.type(screen.getByLabelText(/defaults to today/i), '31/02/2026')
 
-    expect(screen.getByText(/enter a valid date/i)).toBeInTheDocument()
+    expect(screen.getByText(/enter a date from 1900 until today/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add run' })).toBeDisabled()
+  })
+
+  it('blocks a date in the future', async () => {
+    render(<RunForm onRunCreated={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Pick Start location' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Pick End location' }))
+    await userEvent.type(screen.getByLabelText(/defaults to today/i), '01/01/2999')
+
+    expect(screen.getByText(/enter a date from 1900 until today/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add run' })).toBeDisabled()
   })
 

@@ -17,7 +17,7 @@ Built as a time-boxed (~4 hour) take-home assignment: the focus is on simple, re
 - **Statistics page** (`#stats`) with total distance, total time, average distance and pace, longest and shortest run, and distance per month. The summary tiles link to it and to the run history.
 - **Persistent storage** in PostgreSQL, so data survives restarts of the app and the database.
 - **Validation and readable errors**: invalid input returns `400` with a clear message, a missing run returns `404`, and unexpected errors return a generic `500` without a stack trace.
-- **Tests and CI**: 23 backend tests and 32 frontend tests, run by GitHub Actions on every push.
+- **Tests and CI**: 26 backend tests and 36 frontend tests, run by GitHub Actions on every push.
 
 ## Tech stack
 
@@ -176,7 +176,7 @@ curl http://localhost:8080/api/runs/summary
 curl -i -X DELETE http://localhost:8080/api/runs/1
 ```
 
-**Validation rules**: both location names are required (max 255 characters), all four coordinates are required, latitude must be between -90 and 90, longitude between -180 and 180, and `durationSeconds` (if given) between 1 and 86400 (24 hours). Example error:
+**Validation rules**: both location names are required (max 255 characters), all four coordinates are required, latitude must be between -90 and 90, longitude between -180 and 180, `durationSeconds` (if given) a whole number between 1 and 86400 (24 hours), and `runDate` (if given) not in the future. Example error:
 
 ```json
 {"message":"startLatitude must be less than or equal to 90, startLocation must not be blank","timestamp":"2026-09-30T10:15:30Z"}
@@ -200,7 +200,7 @@ Table `runs`:
 | `duration_seconds` | integer | optional; runs without a recorded time have none |
 | `created_at` | timestamp with time zone | set when the run is saved |
 
-**Pace is not stored** either: `paceSecondsPerKm` in the API response is calculated from `duration_seconds / distance_km` (rounded to whole seconds), and is `null` when a run has no time.
+**Pace is not stored** either: `paceSecondsPerKm` in the API response is calculated from `duration_seconds / distance_km` (rounded to whole seconds), and is `null` when a run has no time, or when start and end are the same place (0 km).
 
 The total distance is **not stored**. It is always calculated with a `SUM` query over the `runs` table, so it can never get out of sync with the runs (for example after a delete), and it is 0 when there are no runs.
 
@@ -244,7 +244,7 @@ npm run lint
 
 - **"10K" is the goal and theme** of the app. Individual runs are not required to be exactly 10 km.
 - A run is described by its **start and end point only**; the route actually run in between is not tracked.
-- When no date is given, "today" is the **server's local date**.
+- When no date is given, "today" is the **server's local date** (from an injectable `Clock`, so tests use a fixed date). Future dates are rejected.
 - Location names are stored as the short name returned by Google Places (for example "Big Ben"), falling back to the formatted address.
 - This is a **single-user** app running locally; there is no login.
 

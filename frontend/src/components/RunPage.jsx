@@ -30,13 +30,18 @@ function describeDistance(run, summary) {
   return `${Math.abs(difference).toFixed(2)} km ${direction} than your average run (${average.toFixed(2)} km)`
 }
 
-function RunPage({ run, runs, summary, isLoading, map }) {
+function RunPage({ run, runs, summary, isLoading, loadFailed = false, map }) {
   if (isLoading) {
     return (
       <section className="stats-page">
         <span className="skeleton run-page-skeleton" aria-label="Loading run" />
       </section>
     )
+  }
+
+  // When loading failed, the error banner above already explains the problem.
+  if (!run && loadFailed) {
+    return null
   }
 
   if (!run) {
@@ -51,7 +56,9 @@ function RunPage({ run, runs, summary, isLoading, map }) {
   }
 
   const hasTime = run.durationSeconds != null
-  const speedKmPerHour = hasTime ? run.distanceKm / (run.durationSeconds / 3600) : null
+  // No pace when start and end are the same place: the straight-line distance is 0 km.
+  const hasPace = run.paceSecondsPerKm != null
+  const speedKmPerHour = hasPace ? run.distanceKm / (run.durationSeconds / 3600) : null
   const paceComparison = describePace(run, runs)
   const distanceComparison = describeDistance(run, summary)
 
@@ -78,7 +85,7 @@ function RunPage({ run, runs, summary, isLoading, map }) {
       <div className="stats-grid">
         <StatCard label="Distance" value={`${run.distanceKm.toFixed(2)} km`} />
         <StatCard label="Time" value={hasTime ? formatDuration(run.durationSeconds) : '–'} />
-        <StatCard label="Pace" value={hasTime ? formatPace(run.paceSecondsPerKm) : '–'} />
+        <StatCard label="Pace" value={hasPace ? formatPace(run.paceSecondsPerKm) : '–'} />
         <StatCard
           label="Average speed"
           value={speedKmPerHour !== null ? `${speedKmPerHour.toFixed(1)} km/h` : '–'}
@@ -87,6 +94,12 @@ function RunPage({ run, runs, summary, isLoading, map }) {
       {!hasTime && (
         <p className="run-page-note">
           No time was recorded for this run, so pace and speed are not available.
+        </p>
+      )}
+      {hasTime && !hasPace && (
+        <p className="run-page-note">
+          Start and end are the same place, so the straight-line distance is 0 km and pace and
+          speed cannot be calculated.
         </p>
       )}
       {(paceComparison || distanceComparison) && (

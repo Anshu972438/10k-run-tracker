@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react'
 import LocationSearch from './LocationSearch'
 import { createRun } from '../services/runApi'
+import { todayIsoDate } from '../utils/format'
 
-// Turns "28/09/2026" into "2026-09-28" (the format the API expects),
-// or returns null when the text is not a real date.
+// Turns "28/09/2026" into "2026-09-28" (the format the API expects), or returns null when the
+// text is not a real date between 1900 and today (the API also rejects future dates).
 function toIsoDate(text) {
   const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(text.trim())
   if (!match) {
@@ -15,7 +16,12 @@ function toIsoDate(text) {
   if (date.getDate() !== Number(day) || date.getMonth() !== Number(month) - 1) {
     return null
   }
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+  const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+  // ISO dates compare correctly as plain strings.
+  if (Number(year) < 1900 || isoDate > todayIsoDate()) {
+    return null
+  }
+  return isoDate
 }
 
 function toDisplayDate(isoDate) {
@@ -50,6 +56,7 @@ function RunForm({ onRunCreated }) {
   // Changing the key remounts the search boxes, which clears them after a run is saved.
   const [formKey, setFormKey] = useState(0)
   const datePickerRef = useRef(null)
+  const dateInputRef = useRef(null)
 
   const runDate = toIsoDate(dateText)
   const isDateInvalid = dateText.trim() !== '' && runDate === null
@@ -57,6 +64,15 @@ function RunForm({ onRunCreated }) {
   const isDurationInvalid = durationSeconds === undefined
   const canSubmit =
     start !== null && end !== null && !isDateInvalid && !isDurationInvalid && !isSubmitting
+
+  // showPicker() is missing in older browsers and can be blocked; fall back to typing.
+  function openDatePicker() {
+    try {
+      datePickerRef.current.showPicker()
+    } catch {
+      dateInputRef.current.focus()
+    }
+  }
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -99,6 +115,7 @@ function RunForm({ onRunCreated }) {
       <div className="date-field">
         <input
           id="run-date"
+          ref={dateInputRef}
           type="text"
           inputMode="numeric"
           placeholder="dd/mm/yyyy"
@@ -110,7 +127,7 @@ function RunForm({ onRunCreated }) {
           type="button"
           className="date-picker-button"
           aria-label="Choose date from calendar"
-          onClick={() => datePickerRef.current.showPicker()}
+          onClick={openDatePicker}
         >
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
             <path
@@ -123,6 +140,8 @@ function RunForm({ onRunCreated }) {
         <input
           ref={datePickerRef}
           type="date"
+          min="1900-01-01"
+          max={todayIsoDate()}
           className="date-picker-input"
           tabIndex={-1}
           aria-hidden="true"
@@ -132,7 +151,7 @@ function RunForm({ onRunCreated }) {
           }
         />
       </div>
-      {isDateInvalid && <p className="field-error">Enter a valid date as dd/mm/yyyy.</p>}
+      {isDateInvalid && <p className="field-error">Enter a date from 1900 until today as dd/mm/yyyy.</p>}
       <fieldset className="duration-field">
         <legend className="field-label">Time (optional, used for your pace)</legend>
         <label>

@@ -1,7 +1,22 @@
 import StatCard from './StatCard'
-import { averagePace, formatDate, formatDuration, formatPace, totalDuration } from '../utils/format'
+import {
+  averagePace,
+  formatDate,
+  formatDuration,
+  formatPace,
+  formatTimeAndPace,
+  totalDuration,
+} from '../utils/format'
 
-function DayPage({ date, runs, onShowRun }) {
+function DayPage({ date, runs, isLoading = false, onShowRun }) {
+  if (isLoading) {
+    return (
+      <section className="stats-page">
+        <span className="skeleton run-page-skeleton" aria-label="Loading day" />
+      </section>
+    )
+  }
+
   const dayRuns = runs.filter((run) => run.runDate === date)
   const dayKm = dayRuns.reduce((total, run) => total + run.distanceKm, 0)
   const dayDuration = totalDuration(dayRuns)
@@ -39,9 +54,7 @@ function DayPage({ date, runs, onShowRun }) {
                         {run.startLocation} → {run.endLocation}
                       </span>
                       <span className="run-meta">
-                        {run.durationSeconds != null
-                          ? `${formatDuration(run.durationSeconds)} · ${formatPace(run.paceSecondsPerKm)}`
-                          : 'No time recorded'}
+                        {formatTimeAndPace(run) ?? 'No time recorded'}
                       </span>
                     </span>
                     <span className="run-distance">{run.distanceKm.toFixed(2)} km</span>

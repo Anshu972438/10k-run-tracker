@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { averagePace, formatDuration, formatPace, totalDuration } from './format'
+import {
+  averagePace,
+  formatDuration,
+  formatPace,
+  formatTimeAndPace,
+  totalDuration,
+} from './format'
 
 describe('format helpers', () => {
   it('formats durations with and without hours', () => {
@@ -21,6 +27,23 @@ describe('format helpers', () => {
 
     expect(averagePace(runs)).toBe(330)
     expect(totalDuration(runs)).toBe(3300)
+  })
+
+  it('leaves out 0 km runs (same start and end) from the average pace', () => {
+    const runs = [
+      { distanceKm: 5, durationSeconds: 1500 },
+      { distanceKm: 0, durationSeconds: 1800 },
+    ]
+
+    expect(averagePace(runs)).toBe(300)
+  })
+
+  it('shows only the time when a run has no pace', () => {
+    expect(formatTimeAndPace({ durationSeconds: 1800, paceSecondsPerKm: null })).toBe('30:00')
+    expect(formatTimeAndPace({ durationSeconds: 1200, paceSecondsPerKm: 348 })).toBe(
+      '20:00 · 5:48 /km',
+    )
+    expect(formatTimeAndPace({ durationSeconds: null, paceSecondsPerKm: null })).toBeNull()
   })
 
   it('has no average pace when no run has a time', () => {

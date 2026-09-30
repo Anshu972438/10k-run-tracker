@@ -54,6 +54,16 @@ function App() {
     return () => clearTimeout(timer)
   }, [notice])
 
+  // Pages are swapped in place, so scroll ourselves: to the history for "#history", else to the top.
+  // This runs after React has drawn the page, when the history element exists.
+  useEffect(() => {
+    if (page === '#history') {
+      document.getElementById('history')?.scrollIntoView()
+    } else {
+      window.scrollTo(0, 0)
+    }
+  }, [page])
+
   useEffect(() => {
     function handleHashChange() {
       setPage(window.location.hash)
@@ -80,7 +90,8 @@ function App() {
         setNotice('Run deleted')
         return loadRuns()
       })
-      .catch((err) => setError(err.message))
+      // The run may already be gone (e.g. deleted in another tab): refresh, then explain.
+      .catch((err) => loadRuns().then(() => setError(err.message)))
   }
 
   return (
@@ -109,15 +120,16 @@ function App() {
           </p>
         )}
         {isStatsPage ? (
-          <StatsPage runs={runs} summary={summary} />
+          <StatsPage runs={runs} summary={summary} isLoading={isLoading} />
         ) : dayPageDate ? (
-          <DayPage date={dayPageDate} runs={runs} onShowRun={openRun} />
+          <DayPage date={dayPageDate} runs={runs} isLoading={isLoading} onShowRun={openRun} />
         ) : runPageId ? (
           <RunPage
             run={runPageRun}
             runs={runs}
             summary={summary}
             isLoading={isLoading}
+            loadFailed={Boolean(error) && runs.length === 0}
             map={
               GOOGLE_MAPS_API_KEY && runPageRun ? (
                 <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>

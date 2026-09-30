@@ -52,6 +52,14 @@ describe('RunPage', () => {
     expect(screen.getByText(/no time was recorded/i)).toBeInTheDocument()
   })
 
+  it('explains a loop run where start and end are the same place', () => {
+    const loopRun = { ...run, distanceKm: 0, durationSeconds: 1800, paceSecondsPerKm: null }
+    render(<RunPage run={loopRun} runs={[loopRun]} summary={summary} isLoading={false} />)
+
+    expect(screen.getByText(/start and end are the same place/i)).toBeInTheDocument()
+    expect(screen.queryByText('0:00 /km')).not.toBeInTheDocument()
+  })
+
   it('shows a message when the run does not exist', () => {
     render(<RunPage run={undefined} runs={[]} summary={summary} isLoading={false} />)
 

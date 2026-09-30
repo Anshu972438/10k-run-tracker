@@ -1,4 +1,4 @@
-import { formatDate, formatDuration, formatPace } from '../utils/format'
+import { formatDate, formatTimeAndPace } from '../utils/format'
 
 // Runs arrive newest first, so runs of the same day are next to each other.
 function groupByDay(runs) {
@@ -59,11 +59,8 @@ function RunList({ runs, isLoading = false, selectedRunId, onSelectRun, onDelete
                           <span className="run-route">
                             {run.startLocation} → {run.endLocation}
                           </span>
-                          {run.durationSeconds != null && (
-                            <span className="run-meta">
-                              {formatDuration(run.durationSeconds)} ·{' '}
-                              {formatPace(run.paceSecondsPerKm)}
-                            </span>
+                          {formatTimeAndPace(run) && (
+                            <span className="run-meta">{formatTimeAndPace(run)}</span>
                           )}
                         </span>
                         <span className="run-distance">{run.distanceKm.toFixed(2)} km</span>

@@ -8,7 +8,15 @@ function formatMonth(month) {
   })
 }
 
-function StatsPage({ runs, summary }) {
+function StatsPage({ runs, summary, isLoading = false }) {
+  if (isLoading) {
+    return (
+      <section className="stats-page">
+        <span className="skeleton run-page-skeleton" aria-label="Loading statistics" />
+      </section>
+    )
+  }
+
   const averageKm = summary.totalRuns > 0 ? summary.totalDistanceKm / summary.totalRuns : 0
   const totalSeconds = totalDuration(runs)
   const pace = averagePace(runs)

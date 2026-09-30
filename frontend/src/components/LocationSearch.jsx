@@ -32,13 +32,21 @@ function LocationSearch({ label, onSelect }) {
         })
       } catch {
         setError('Could not load this place. Please try again.')
+        onSelectRef.current(null)
       }
     }
 
+    // Typing again after picking a place means the old place no longer applies.
+    function handleInput() {
+      onSelectRef.current(null)
+    }
+
     autocomplete.addEventListener('gmp-select', handleSelect)
+    autocomplete.addEventListener('input', handleInput)
 
     return () => {
       autocomplete.removeEventListener('gmp-select', handleSelect)
+      autocomplete.removeEventListener('input', handleInput)
       autocomplete.remove()
     }
   }, [places])
