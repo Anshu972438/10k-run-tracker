@@ -15,7 +15,7 @@ Built as a time-boxed (~4 hour) take-home assignment: the focus is on simple, re
 - **Statistics page** (`#stats`) with total, average, longest and shortest run, and distance per month. The summary tiles link to it and to the run history.
 - **Persistent storage** in PostgreSQL, so data survives restarts of the app and the database.
 - **Validation and readable errors**: invalid input returns `400` with a clear message, a missing run returns `404`, and unexpected errors return a generic `500` without a stack trace.
-- **Tests and CI**: 20 backend tests and 14 frontend tests, run by GitHub Actions on every push.
+- **Tests and CI**: 20 backend tests and 15 frontend tests, run by GitHub Actions on every push.
 
 ## Tech stack
 
@@ -88,7 +88,7 @@ npm run dev
 
 Open http://localhost:5173.
 
-Without a Google Maps key the app still runs: the total and the run history work, and a message explains that the map and the location search need a key.
+Without a Google Maps key the app still runs: the total and the run history work, and a message explains that the map and the location search need a key. If the key is invalid, an error boundary replaces only the map and the form with a message, so the rest of the page keeps working.
 
 ## Google Maps setup
 
@@ -228,6 +228,7 @@ npm run lint
 - `RunList`: empty state, rendering, selecting a run, delete only after confirmation.
 - `RunForm`: submit stays disabled until both places are selected, typed dates are sent as `YYYY-MM-DD`, invalid dates block submitting, successful save, and error display.
 - `StatsPage`: longest and shortest run, average, and the empty state.
+- `MapsErrorBoundary`: a Google Maps error shows a message instead of blanking the page.
 
 **CI**: `.github/workflows/ci.yml` runs the backend tests and the frontend lint, tests and build on every push to `main` and on pull requests.
 
@@ -275,7 +276,8 @@ backend/
 frontend/
   src/
     App.jsx       page layout and state
-    components/   DistanceSummary, RunForm, LocationSearch, RunMap, RunList, StatsPage (+ tests)
+    components/   DistanceSummary, RunForm, LocationSearch, RunMap, RunList, StatsPage,
+                  MapsErrorBoundary (+ tests)
     services/     runApi.js
 docker-compose.yml   PostgreSQL 16
 .github/workflows/   CI
