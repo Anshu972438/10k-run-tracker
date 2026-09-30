@@ -11,14 +11,14 @@ Built as a time-boxed (~4 hour) take-home assignment: the focus is on simple, re
 - **Add a run** with a start location, an end location, an optional date (defaults to today) and an optional time (h/min/sec). Locations are picked with Google Places search, so every run has exact coordinates.
 - **Pace** (min/km) for every run with a time, calculated by the server from the time and the distance.
 - **Map** of the selected run with a green **S** (start) and a red **E** (end) marker, a dashed line between them, and the view zoomed to fit both points. The newest run is shown by default; click a run in the history to show it.
-- **Total distance** across all runs, shown prominently, together with the number of runs and the average distance per run.
+- **Total distance** across all runs, shown prominently, together with the number of runs, the average distance per run and a **10K goal ring** (km to your next 10K and how many 10Ks you have completed).
 - **Run history**, newest first and grouped by day, with delete (with confirmation). Click a day to open its **daily summary** (`#day/YYYY-MM-DD`): distance, runs, time, average pace and the runs of that day.
 - **Run details page** (`#run/7`): click any run to see its distance, time, pace and average speed, how it compares with your other runs, its own map, and the start and end coordinates.
 - **Edit a run**: correct the date or time of a saved run from its details page; the pace is recalculated.
-- **Statistics page** (`#stats`) with total distance, total time, average distance and pace, longest and shortest run, and distance per month. The summary tiles link to it and to the run history.
+- **Statistics page** (`#stats`) with total distance, total time, average distance and pace, a **chart of the last 8 weeks**, a **calendar heatmap** (days coloured by distance; click a day for its summary), **personal records** (longest run, fastest pace, longest time, best week) and distance per month. The summary tiles link to it and to the run history.
 - **Persistent storage** in PostgreSQL, so data survives restarts of the app and the database.
 - **Validation and readable errors**: invalid input returns `400` with a clear message, a missing run returns `404`, and unexpected errors return a generic `500` without a stack trace.
-- **Tests and CI**: 31 backend tests and 43 frontend tests, run by GitHub Actions on every push.
+- **Tests and CI**: 31 backend tests and 48 frontend tests, run by GitHub Actions on every push.
 
 ## Tech stack
 
@@ -243,7 +243,8 @@ npm run lint
 - `RunList`: empty state, rendering, time and pace, grouping by day with a link to the daily summary, selecting a run, delete only after confirmation.
 - `RunForm`: submit stays disabled until both places are selected, typed dates are sent as `YYYY-MM-DD`, the time is sent in seconds, invalid dates or times block submitting, successful save, and error display.
 - `EditRunForm`: starts with the run's values, saves changes, removes the time, needs a date, shows save errors.
-- `StatsPage`: longest and shortest run, average, and the empty state.
+- `StatsPage`: average, personal records, and the empty state.
+- `stats` helpers: 10K goal progress, Monday-based weeks, weekly totals with empty weeks, personal records, and the month calendar grid.
 - `DayPage`: totals and pace for one day only, opening a run, and a day without runs.
 - `RunPage`: time, pace and speed, comparison with the other runs, the link to the day, a run without a time, and a run that does not exist.
 - `format` and `runInput` helpers: duration, pace, average pace (skipping 0 km loop runs), typed dates and time fields.
@@ -279,7 +280,7 @@ npm run lint
 - Flyway migrations and Testcontainers-based integration tests.
 - Dockerfiles for the backend and frontend, so the whole stack starts with `docker compose up`.
 - User accounts, so each runner sees only their own runs.
-- Progress towards a personal 10K goal (for example total distance per week).
+- A personal weekly distance goal chosen by the user.
 
 ## Project structure
 
@@ -298,8 +299,9 @@ frontend/
     App.jsx       page layout and state
     components/   DistanceSummary, RunForm, LocationSearch, RunMap, RunList, StatsPage,
                   DayPage, RunPage, EditRunForm, DateField, DurationFields, StatCard,
-                  MapsErrorBoundary (+ tests)
-    utils/        format.js (dates, durations, pace), runInput.js (form parsing)
+                  GoalRing, WeeklyChart, RunCalendar, MapsErrorBoundary (+ tests)
+    utils/        format.js (dates, durations, pace), runInput.js (form parsing),
+                  stats.js (goal, weeks, records, calendar)
     services/     runApi.js
 docker-compose.yml   PostgreSQL 16
 .github/workflows/   CI
