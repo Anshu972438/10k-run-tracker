@@ -128,3 +128,64 @@ body {
   margin: 0;
   color: #666;
 }
+
+.run-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px 24px 24px;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.run-form h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.location-search {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field-error {
+  margin: 0;
+  color: #b3261e;
+  font-size: 14px;
+}
+
+gmp-place-autocomplete {
+  width: 100%;
+  color-scheme: light;
+}
+
+.run-form input[type='date'] {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.run-form button {
+  align-self: flex-start;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 8px;
+  background: #1b5e20;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.run-form button:disabled {
+  background: #9e9e9e;
+  cursor: not-allowed;
+}

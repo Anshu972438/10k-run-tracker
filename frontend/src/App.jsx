@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { APIProvider } from '@vis.gl/react-google-maps'
 import DistanceSummary from './components/DistanceSummary'
+import RunForm from './components/RunForm'
 import RunList from './components/RunList'
 import RunMap from './components/RunMap'
 import { getRuns, getSummary } from './services/runApi'
@@ -30,6 +31,11 @@ function App() {
     loadRuns()
   }, [])
 
+  function handleRunCreated(createdRun) {
+    setSelectedRunId(createdRun.id)
+    loadRuns()
+  }
+
   return (
     <main className="app">
       <h1>10K Run Tracker</h1>
@@ -37,12 +43,13 @@ function App() {
       <DistanceSummary totalDistanceKm={summary.totalDistanceKm} totalRuns={summary.totalRuns} />
       {GOOGLE_MAPS_API_KEY ? (
         <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+          <RunForm onRunCreated={handleRunCreated} />
           <RunMap run={selectedRun} />
         </APIProvider>
       ) : (
         <p className="map-message">
-          The map is not available. Add VITE_GOOGLE_MAPS_API_KEY to frontend/.env.local and restart
-          the dev server.
+          Google Maps is not configured, so runs cannot be added and the map is hidden. Add
+          VITE_GOOGLE_MAPS_API_KEY to frontend/.env.local and restart the dev server.
         </p>
       )}
       <RunList runs={runs} selectedRunId={selectedRun?.id} onSelectRun={setSelectedRunId} />
