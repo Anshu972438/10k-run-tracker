@@ -17,4 +17,11 @@ describe('DistanceSummary', () => {
     expect(screen.getByText('0.00')).toBeInTheDocument()
     expect(screen.getByText('0.00 km')).toBeInTheDocument()
   })
+
+  it('links the runs to the history and the average to the statistics page', () => {
+    render(<DistanceSummary totalDistanceKm={8.17} totalRuns={3} />)
+
+    expect(screen.getByRole('link', { name: /runs/i })).toHaveAttribute('href', '#history')
+    expect(screen.getByRole('link', { name: /average per run/i })).toHaveAttribute('href', '#stats')
+  })
 })

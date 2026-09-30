@@ -16,7 +16,7 @@ function RunList({ runs, selectedRunId, onSelectRun, onDeleteRun }) {
   }
 
   return (
-    <section className="run-list">
+    <section className="run-list" id="history">
       <h2>Run history</h2>
       {runs.length === 0 ? (
         <p className="empty-state">No runs yet. Add your first run to get started.</p>

@@ -55,6 +55,29 @@ describe('RunForm', () => {
     expect(onRunCreated).toHaveBeenCalledWith(createdRun)
   })
 
+  it('sends a typed date in the format the API expects', async () => {
+    createRun.mockResolvedValue({ id: 8 })
+    render(<RunForm onRunCreated={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Pick Start location' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Pick End location' }))
+    await userEvent.type(screen.getByLabelText(/defaults to today/i), '28/09/2026')
+    await userEvent.click(screen.getByRole('button', { name: 'Add run' }))
+
+    expect(createRun).toHaveBeenCalledWith(expect.objectContaining({ runDate: '2026-09-28' }))
+  })
+
+  it('blocks submitting an invalid date', async () => {
+    render(<RunForm onRunCreated={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Pick Start location' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Pick End location' }))
+    await userEvent.type(screen.getByLabelText(/defaults to today/i), '31/02/2026')
+
+    expect(screen.getByText(/enter a valid date/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add run' })).toBeDisabled()
+  })
+
   it('shows the error message when saving fails', async () => {
     createRun.mockRejectedValue(new Error('startLatitude must not be null'))
     render(<RunForm onRunCreated={vi.fn()} />)

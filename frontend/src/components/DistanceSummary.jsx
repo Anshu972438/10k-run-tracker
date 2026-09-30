@@ -10,16 +10,16 @@ function DistanceSummary({ totalDistanceKm, totalRuns }) {
           <span className="summary-unit">km</span>
         </p>
       </div>
-      <dl className="summary-stats">
-        <div>
-          <dt>Runs</dt>
-          <dd>{totalRuns}</dd>
-        </div>
-        <div>
-          <dt>Average per run</dt>
-          <dd>{averageKm.toFixed(2)} km</dd>
-        </div>
-      </dl>
+      <div className="summary-stats">
+        <a className="summary-stat" href="#history">
+          <span className="summary-stat-label">Runs</span>
+          <span className="summary-stat-value">{totalRuns}</span>
+        </a>
+        <a className="summary-stat" href="#stats">
+          <span className="summary-stat-label">Average per run</span>
+          <span className="summary-stat-value">{averageKm.toFixed(2)} km</span>
+        </a>
+      </div>
     </section>
   )
 }
