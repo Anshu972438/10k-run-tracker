@@ -30,10 +30,12 @@ function toDurationSeconds(hours, minutes, seconds) {
   }
   const [h, m, s] = [hours, minutes, seconds].map((value) => (value === '' ? 0 : Number(value)))
   const isWholeNumber = [h, m, s].every((value) => Number.isInteger(value) && value >= 0)
-  if (!isWholeNumber || m > 59 || s > 59 || h * 3600 + m * 60 + s === 0) {
+  const totalSeconds = h * 3600 + m * 60 + s
+  // The API accepts 1 second up to 24 hours; check it here so the user gets a clear message.
+  if (!isWholeNumber || m > 59 || s > 59 || totalSeconds === 0 || totalSeconds > 86400) {
     return undefined
   }
-  return h * 3600 + m * 60 + s
+  return totalSeconds
 }
 
 function RunForm({ onRunCreated }) {
@@ -134,46 +136,43 @@ function RunForm({ onRunCreated }) {
       <fieldset className="duration-field">
         <legend className="field-label">Time (optional, used for your pace)</legend>
         <label>
+          <span className="duration-label">Hours</span>
           <input
             type="number"
             inputMode="numeric"
             min="0"
-            placeholder="0"
+            max="24"
             value={hours}
             onChange={(event) => setHours(event.target.value)}
-            aria-label="Hours"
           />
-          <span>h</span>
         </label>
         <label>
+          <span className="duration-label">Minutes</span>
           <input
             type="number"
             inputMode="numeric"
             min="0"
             max="59"
-            placeholder="0"
             value={minutes}
             onChange={(event) => setMinutes(event.target.value)}
-            aria-label="Minutes"
           />
-          <span>min</span>
         </label>
         <label>
+          <span className="duration-label">Seconds</span>
           <input
             type="number"
             inputMode="numeric"
             min="0"
             max="59"
-            placeholder="0"
             value={seconds}
             onChange={(event) => setSeconds(event.target.value)}
-            aria-label="Seconds"
           />
-          <span>sec</span>
         </label>
       </fieldset>
       {isDurationInvalid && (
-        <p className="field-error">Enter a time above zero, with minutes and seconds up to 59.</p>
+        <p className="field-error">
+          Enter a time up to 24 hours, with minutes and seconds from 0 to 59.
+        </p>
       )}
       {error && <p className="error">{error}</p>}
       <button type="submit" disabled={!canSubmit}>

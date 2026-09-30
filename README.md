@@ -17,7 +17,7 @@ Built as a time-boxed (~4 hour) take-home assignment: the focus is on simple, re
 - **Statistics page** (`#stats`) with total distance, total time, average distance and pace, longest and shortest run, and distance per month. The summary tiles link to it and to the run history.
 - **Persistent storage** in PostgreSQL, so data survives restarts of the app and the database.
 - **Validation and readable errors**: invalid input returns `400` with a clear message, a missing run returns `404`, and unexpected errors return a generic `500` without a stack trace.
-- **Tests and CI**: 23 backend tests and 31 frontend tests, run by GitHub Actions on every push.
+- **Tests and CI**: 23 backend tests and 32 frontend tests, run by GitHub Actions on every push.
 
 ## Tech stack
 

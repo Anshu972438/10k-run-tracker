@@ -87,7 +87,18 @@ describe('RunForm', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Pick End location' }))
     await userEvent.type(screen.getByLabelText('Minutes'), '75')
 
-    expect(screen.getByText(/enter a time above zero/i)).toBeInTheDocument()
+    expect(screen.getByText(/enter a time up to 24 hours/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add run' })).toBeDisabled()
+  })
+
+  it('blocks a time longer than 24 hours before sending it', async () => {
+    render(<RunForm onRunCreated={vi.fn()} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Pick Start location' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Pick End location' }))
+    await userEvent.type(screen.getByLabelText('Hours'), '30')
+
+    expect(screen.getByText(/enter a time up to 24 hours/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add run' })).toBeDisabled()
   })
 

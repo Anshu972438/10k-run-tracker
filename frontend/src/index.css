@@ -805,12 +805,19 @@ gmp-place-autocomplete {
 }
 
 .duration-field label {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.duration-label {
+  color: var(--color-muted);
+  font-size: 12px;
 }
 
 .duration-field input {
   width: 100%;
-  padding: 10px 40px 10px 12px;
+  padding: 10px 12px;
   border: 1px solid #cbd5e1;
   border-radius: 10px;
   background: #fff;
@@ -833,16 +840,6 @@ gmp-place-autocomplete {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgb(22 163 74 / 0.15);
-}
-
-.duration-field span {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  color: var(--color-muted);
-  font-size: 13px;
-  pointer-events: none;
-  transform: translateY(-50%);
 }
 
 .run-meta {
