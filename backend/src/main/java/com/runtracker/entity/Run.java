@@ -60,6 +60,11 @@ public class Run {
         this.durationSeconds = durationSeconds;
     }
 
+    public void update(LocalDate runDate, Integer durationSeconds) {
+        this.runDate = runDate;
+        this.durationSeconds = durationSeconds;
+    }
+
     @PrePersist
     void onCreate() {
         createdAt = Instant.now();

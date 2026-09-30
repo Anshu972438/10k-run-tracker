@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -215,6 +216,44 @@ class RunControllerIntegrationTest {
 
         mockMvc.perform(post("/api/runs").contentType(MediaType.APPLICATION_JSON).content(request))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updatesRunDateAndTime() throws Exception {
+        Run run = saveRun("Big Ben, London", 3.45, LocalDate.of(2026, 9, 28));
+        String request = """
+                { "runDate": "2026-09-27", "durationSeconds": 1200 }
+                """;
+
+        mockMvc.perform(put("/api/runs/{id}", run.getId()).contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.runDate").value("2026-09-27"))
+                .andExpect(jsonPath("$.durationSeconds").value(1200))
+                .andExpect(jsonPath("$.paceSecondsPerKm").value(348))
+                .andExpect(jsonPath("$.startLocation").value("Big Ben, London"));
+    }
+
+    @Test
+    void rejectsUpdateWithoutDate() throws Exception {
+        Run run = saveRun("Big Ben, London", 3.45, LocalDate.of(2026, 9, 28));
+        String request = """
+                { "durationSeconds": 1200 }
+                """;
+
+        mockMvc.perform(put("/api/runs/{id}", run.getId()).contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("runDate must not be null"));
+    }
+
+    @Test
+    void returnsNotFoundWhenUpdatingMissingRun() throws Exception {
+        String request = """
+                { "runDate": "2026-09-27" }
+                """;
+
+        mockMvc.perform(put("/api/runs/{id}", 999).contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Run with id 999 not found"));
     }
 
     @Test

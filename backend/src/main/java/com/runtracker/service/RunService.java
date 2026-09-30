@@ -3,6 +3,7 @@ package com.runtracker.service;
 import com.runtracker.dto.CreateRunRequest;
 import com.runtracker.dto.RunResponse;
 import com.runtracker.dto.RunSummaryResponse;
+import com.runtracker.dto.UpdateRunRequest;
 import com.runtracker.entity.Run;
 import com.runtracker.exception.RunNotFoundException;
 import com.runtracker.repository.RunRepository;
@@ -48,6 +49,12 @@ public class RunService {
         // Adding doubles can leave tiny errors (6.630000000000001), so round the total again.
         double totalDistanceKm = Math.round(runRepository.sumDistanceKm() * 100) / 100.0;
         return new RunSummaryResponse(runRepository.count(), totalDistanceKm);
+    }
+
+    public RunResponse updateRun(Long id, UpdateRunRequest request) {
+        Run run = runRepository.findById(id).orElseThrow(() -> new RunNotFoundException(id));
+        run.update(request.runDate(), request.durationSeconds());
+        return RunResponse.from(runRepository.save(run));
     }
 
     public void deleteRun(Long id) {

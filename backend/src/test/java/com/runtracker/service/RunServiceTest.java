@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.runtracker.dto.CreateRunRequest;
 import com.runtracker.dto.RunResponse;
 import com.runtracker.dto.RunSummaryResponse;
+import com.runtracker.dto.UpdateRunRequest;
 import com.runtracker.entity.Run;
 import com.runtracker.exception.RunNotFoundException;
 import com.runtracker.repository.RunRepository;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -120,6 +122,30 @@ class RunServiceTest {
 
         assertThat(summary.totalRuns()).isZero();
         assertThat(summary.totalDistanceKm()).isZero();
+    }
+
+    @Test
+    void updateRunChangesDateAndTimeAndRecalculatesPace() {
+        Run run = new Run("Big Ben", 51.5007, -0.1246, "Tower Bridge", 51.5055, -0.0754,
+                3.45, LocalDate.of(2026, 9, 28), null);
+        when(runRepository.findById(1L)).thenReturn(Optional.of(run));
+        when(runRepository.save(run)).thenReturn(run);
+
+        RunResponse response = runService.updateRun(1L, new UpdateRunRequest(LocalDate.of(2026, 9, 27), 1200));
+
+        assertThat(response.runDate()).isEqualTo(LocalDate.of(2026, 9, 27));
+        assertThat(response.durationSeconds()).isEqualTo(1200);
+        assertThat(response.paceSecondsPerKm()).isEqualTo(348);
+        assertThat(response.distanceKm()).isEqualTo(3.45);
+    }
+
+    @Test
+    void updateRunThrowsWhenRunDoesNotExist() {
+        when(runRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> runService.updateRun(99L, new UpdateRunRequest(LocalDate.of(2026, 9, 27), null)))
+                .isInstanceOf(RunNotFoundException.class);
+        verify(runRepository, never()).save(any());
     }
 
     @Test
